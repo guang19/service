@@ -1,18 +1,20 @@
 # 提供更加便捷的服务(Service Tool)
 关于服务2字的含义,我想可以既可以是普通服务,也可以是其他类型的服务,如:云服务...
 
-正在考虑 COS-with-SpringBoot... 
+正在做SMS短信服务
+
+考虑 COS-with-SpringBoot... 
 
 #### 计划中的服务包括:
-1. COS(云对象存储服务,腾讯云的COS和阿里云的OSS)
-2. ShortMessage-Service(短信服务,阿里云和腾讯云)
-3. Email-Service(邮箱服务)
-4. ...
+1. COS(Cloud Object Storage:云对象存储服务.腾讯云的COS和阿里云的OSS)
+2. SMS(Short-Message-Service: 短信服务,阿里云和腾讯云(目前只支持阿里云))
+3. 全局唯一ID生成器(考虑美团Leaf)
 
 计划会把其中常用的服务与SpringBoot做一个整合.
 
+### 1.COS(Cloud Object Storage or Object Storage Service)
+云对象存储服务
 
-### 1. COS(OSS)服务
 >腾讯云COS的参考文档: [文档1](https://cloud.tencent.com/document/product/436/7751)
                   [文档2](https://cloud.tencent.com/document/product/436/10199)
                   
@@ -20,7 +22,7 @@
                   [文档2](https://help.aliyun.com/document_detail/31827.html)
                   [文档3](https://help.aliyun.com/document_detail/32010.html)
  
- #### 使用:
+#### 使用:
  引入依赖:
  ````java
 maven:
@@ -32,7 +34,6 @@ maven:
 
 gradle:
 implementation 'com.github.guang19:cloud-storage-service:1.0.0'
-
 ````
 >COS服务分为存储桶操作和对象操作.
 >
@@ -108,4 +109,15 @@ System.out.println(ossObjectTemplate.getObjectMetaData("b"));
 | cos.service.proxy-port:代理服务器的主机端口.一般不做配置     |        可选         |       可选       |     无     |
 | cos.service.proxy-username:代理服务器验证的用户名.一般不做配置 |        可选         |       可选       |     无     |
 | cos.service.proxy-password:代理服务器验证的密码,一般不做配置 |        可选         |       可选       |     无     |                  
+
+
+### 2. SMS(Short Message Service)
+短信服务.(因为腾讯云需要购买套餐包才能发送消息,连调试都不行,所以我暂时不写它的短信服务了)
+                         
+>阿里云SMS的参考文档: [文档](https://help.aliyun.com/document_detail/108064.html)
+
+>斗胆猜测一下:我想没有同学愿意以API的方式来操作短信服务的签名和模板,如果想这么做的同学我还是建议参考文档吧,此项目是对SMS的一个简单的封装,毕竟
+短信接口的API不多.
+
+...
 

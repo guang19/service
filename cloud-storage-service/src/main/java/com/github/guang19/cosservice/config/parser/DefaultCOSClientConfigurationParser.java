@@ -39,7 +39,7 @@ public class DefaultCOSClientConfigurationParser implements COSClientConfigurati
      * <p>解析基础配置</p>
      * @param config 配置文件
      */
-    private COSClientConfiguration parseCOSClientConfiguration(String config)
+    private synchronized COSClientConfiguration parseCOSClientConfiguration(String config)
     {
         if(config == null)
         {
