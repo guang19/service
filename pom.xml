@@ -14,6 +14,7 @@
     <modules>
         <module>cloud-storage-service</module>
         <module>short-message-service</module>
+        <module>service-common</module>
     </modules>
 
     <url>https://github.com/guang19/service</url>
@@ -73,10 +74,24 @@
 
     <dependencyManagement>
         <dependencies>
-            <!--cloud storage service-->
+            <!--cloud object storage service-->
             <dependency>
-                <groupId>com.github.yangguang19</groupId>
+                <groupId>com.github.guang19</groupId>
                 <artifactId>cloud-storage-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!--short message service-->
+            <dependency>
+                <groupId>com.github.guang19</groupId>
+                <artifactId>short-message-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!--service common-->
+            <dependency>
+                <groupId>com.github.guang19</groupId>
+                <artifactId>service-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -140,19 +155,6 @@
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
                 <version>${lombok.version}</version>
-            </dependency>
-
-            <!--spring boot test-->
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-test</artifactId>
-                <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.junit.vintage</groupId>
-                        <artifactId>junit-vintage-engine</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
 
             <!--junit4-->

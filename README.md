@@ -112,7 +112,7 @@ System.out.println(ossObjectTemplate.getObjectMetaData("b"));
 
 
 ### 2. SMS(Short Message Service)
-短信服务.(因为腾讯云需要购买套餐包才能发送消息,连调试都不行,所以我暂时不写它的短信服务了)
+短信服务.(因为腾讯云需要购买套餐包才能发送短信,连调试都不行,所以我暂时不写它的短信服务了)
                          
 >阿里云SMS的参考文档: [文档](https://help.aliyun.com/document_detail/108064.html)
 

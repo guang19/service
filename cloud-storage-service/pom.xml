@@ -15,6 +15,12 @@
     <name>cloud-storage-service</name>
 
     <dependencies>
+        <!--service common-->
+        <dependency>
+            <groupId>com.github.guang19</groupId>
+            <artifactId>service-common</artifactId>
+        </dependency>
+
         <!--tencent cloud cos sdk-->
         <dependency>
             <groupId>com.qcloud</groupId>
