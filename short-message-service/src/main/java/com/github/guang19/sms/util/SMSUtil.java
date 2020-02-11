@@ -36,11 +36,11 @@ public class SMSUtil
         {
             case NORMAL:
                 request.setSysAction("SendSms");
-                request.putQueryParameter("SignName",smsProfileProperties.getSignName()[0]);
+                request.putQueryParameter("SignName",smsProfileProperties.getSignNames()[0]);
                 break;
             case BATCH:
                 request.setSysAction("SendBatchSms");
-                request.putQueryParameter("SignNameJson",gson.toJson(Arrays.toString(smsProfileProperties.getSignName())));
+                request.putQueryParameter("SignNameJson",gson.toJson(smsProfileProperties.getSignNames()));
                 break;
             case QUERY:
                 request.setSysAction("QuerySendDetails");
@@ -62,7 +62,6 @@ public class SMSUtil
     public static ResponseDTO  parseAliyunSMSResponseBizId(CommonResponse commonResponse)
     {
         return  gson.fromJson(commonResponse.getData(), ResponseDTO.class);
-//            log.error("current message : ".concat(result.get("RequestId").toString()).concat(" sending error due to : ".concat(result.get("Code").toString())));
     }
 
     /**

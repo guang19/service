@@ -16,7 +16,7 @@ public class SMSProfileProperties
     private final String region;
 
     //短信签名
-    private final String[] signName;
+    private final String[] signNames;
 
     //短信模板
     private String messageTemplate;
@@ -30,11 +30,11 @@ public class SMSProfileProperties
     /**
      * 全参构造
      * @param region            地域
-     * @param signName          短信签名
+     * @param signNames          短信签名
      */
-    protected SMSProfileProperties(String region, String[] signName)
+    protected SMSProfileProperties(String region, String[] signNames)
     {
         this.region = region;
-        this.signName = signName;
+        this.signNames = signNames;
     }
 }

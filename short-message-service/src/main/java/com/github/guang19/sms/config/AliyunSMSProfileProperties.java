@@ -25,13 +25,13 @@ public class AliyunSMSProfileProperties extends SMSProfileProperties
     /**
      * 重要属性构造
      * @param region        地域
-     * @param signName      短信签名
+     * @param signNames      短信签名
      * @param secretId      secret id
      * @param secretKey     secret key
      */
-    public AliyunSMSProfileProperties(String region, String[] signName,String secretId,String secretKey)
+    public AliyunSMSProfileProperties(String region, String[] signNames,String secretId,String secretKey)
     {
-        super(region, signName);
+        super(region, signNames);
         this.defaultProfile = DefaultProfile.getProfile(region,secretId,secretKey);
     }
 }

@@ -53,12 +53,12 @@ public abstract class BaseAliyunSMSTemplate implements AliyunSMSTemplate
 
     /**
      * <p>
-     * 发送短信,不过此方法只支持一个参数和一个手机号
+     * 发送短信,支持一个手机号
      * </p>
      *
      * @param phoneNumber 手机号
-     * @param param       参数,关于 Param ,可以参考: {@link ParamDTO}
-     * @return           如果发送成功,则返回发送成功的响应体 : {@link ResponseDTO}
+     * @param param       参数,关于 ParamDTO ,可以参考: {@link ParamDTO}
+     * @return 如果发送成功, 则返回发送成功的响应体 : {@link ResponseDTO}
      */
     @Override
     public ResponseDTO sendMessage(String phoneNumber, ParamDTO param)
@@ -68,15 +68,14 @@ public abstract class BaseAliyunSMSTemplate implements AliyunSMSTemplate
 
     /**
      * <p>
-     * 发送短信,不过此方法只支持一个参数
+     * 发送短信,支持一个手机号
      * 并且在多手机号的情况下较单手机号会有延迟
-     * 此方法与 send batch 方法不同,此方法只会使用一个短信模板
+     * 此方法与 send batch 方法不同,此方法只会使用一个短信签名
      * </p>
      *
      * @param phoneNumbers 手机号,允许一个或多个手机号
-     * @param param        参数
-     * @return      如果发送成功,则返回发送成功的响应体 : {@link ResponseDTO}
-     *
+     * @param param        参数,关于 ParamDTO ,可以参考: {@link ParamDTO}
+     * @return 如果发送成功, 则返回发送成功的响应体 : {@link ResponseDTO}
      */
     @Override
     public ResponseDTO sendMessage(String[] phoneNumbers, ParamDTO param)
@@ -86,29 +85,15 @@ public abstract class BaseAliyunSMSTemplate implements AliyunSMSTemplate
 
     /**
      * <p>
-     * 发送短信,虽然此方法只支持一个手机号,但是允许多个参数
-     * 关于 Param ,可以参考: {@link ParamDTO}
-     * </p>
-     *
-     * @param phoneNumber 手机号
-     * @param params      参数
-     * @return            如果发送成功,则返回发送成功的响应体 : {@link ResponseDTO}
-     */
-    @Override
-    public ResponseDTO sendBatchMessage(String phoneNumber, ParamDTO[] params)
-    {
-        throw new UnsupportedOperationException("can not send message with base template");
-    }
-
-    /**
-     * <p>
-     * 发送短信,允许多个手机号和多个参数
-     * 关于 Param ,可以参考: {@link ParamDTO}
+     * 发送短信,允许多个手机号和多个签名
+     * 关于 ParamDTO ,可以参考: {@link ParamDTO}
+     * 模板变量值的个数(参数值的个数)必须与手机号码、签名的个数相同、内容一一对应，
+     * 表示向指定手机号码中发对应签名的短信
      * </p>
      *
      * @param phoneNumbers 手机号
      * @param params       参数
-     * @return            如果发送成功,则返回发送成功的响应体 : {@link ResponseDTO}
+     * @return 如果发送成功, 则返回发送成功的响应体 : {@link ResponseDTO}
      */
     @Override
     public ResponseDTO sendBatchMessage(String[] phoneNumbers, ParamDTO[] params)
@@ -192,7 +177,7 @@ public abstract class BaseAliyunSMSTemplate implements AliyunSMSTemplate
      * @param bizId             发送流水号
      * @return                  响应体数据
      */
-    private final ResponseDTO queryMessageDetails(String phoneNumber, LocalDate sendDate, long currentPage, String bizId)
+    private  ResponseDTO queryMessageDetails(String phoneNumber, LocalDate sendDate, long currentPage, String bizId)
     {
         CommonRequest request = getSMSRequest(QUERY);
         request.putQueryParameter("PageSize",String.valueOf(queryPageSize));
@@ -212,7 +197,12 @@ public abstract class BaseAliyunSMSTemplate implements AliyunSMSTemplate
     {
         try
         {
-            return SMSUtil.parseAliyunSMSResponseBizId(acsClient.getCommonResponse(request));
+            ResponseDTO response =  SMSUtil.parseAliyunSMSResponseBizId(acsClient.getCommonResponse(request));
+            if(!response.getCode().equals("OK"))
+            {
+                logger.error("current message : ".concat(response.getRequestId().concat(" sending error due to : ".concat(response.getCode()))));
+            }
+            return response;
         }
         catch (ClientException e)
         {

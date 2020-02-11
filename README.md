@@ -48,7 +48,7 @@ implementation 'com.github.guang19:cloud-storage-service:1.0.0'
 //创建存储桶模板顶级通用接口
 COSBucketTemplate cosBucketTemplate = new COSBucketTemplateBuilder().build("cos-config.properties");
 
-//创建腾讯云或阿里云的存储桶模板取决于: cos.service.type 属性 
+//或者创建腾讯云/阿里云的存储桶模板取决于: cos.service.type 属性 
 TenCloudCOSBucketTemplate cosBucketTemplate = (TenCloudCOSBucketTemplate)new COSBucketTemplateBuilder().build("cos-config.properties");
 AliyunOSSBucketTemplate ossBucketTemplate = (AliyunOSSBucketTemplate) new COSBucketTemplateBuilder().build("cos-config.properties");
 
@@ -68,7 +68,7 @@ AliyunOSSBucketTemplate ossBucketTemplate = (AliyunOSSBucketTemplate) new COSBuc
 //创建对象模板顶级通用接口
 COSObjectTemplate cosObjectTemplate = new COSObjectTemplateBuilder().build("cos-config.properties");
 
-//创建腾讯云或阿里云的存储桶模板取决于: cos.service.type 属性 
+//或者创建腾讯云/阿里云的存储桶模板取决于: cos.service.type 属性 
 TenCloudCOSObjectTemplate cosObjectTemplate = (TenCloudCOSObjectTemplate)new COSObjectTemplateBuilder().build("cos-config.properties");
 AliyunOSSObjectTemplate ossObjectTemplate  = (AliyunOSSObjectTemplate) new COSObjectTemplateBuilder().build("cos-config.properties");
 
@@ -119,5 +119,57 @@ System.out.println(ossObjectTemplate.getObjectMetaData("b"));
 >斗胆猜测一下:我想没有同学愿意以API的方式来操作短信服务的签名和模板,如果想这么做的同学我还是建议参考文档吧,此项目是对SMS的一个简单的封装,毕竟
 短信接口的API不多.
 
-...
+#### 使用:
+短信接口的API比较少,但我仍然采用模板+配置的方式来编写.
+在资源文件夹下创建一个叫 sms.properties的文件
+>配置文件内容参照:[配置文件](https://github.com/guang19/service/tree/master/short-message-service/src/main/resources/short-message.properties)
 
+使用:
+1. 创建模板
+2. 使用模板
+````java
+//创建顶级模板
+SMSTemplate smsTemplate = new SMSTemplateBuilder().build("sms.properties");
+//或者创建阿里云短信服务操作模板,模板类型取决于:sm.service.type
+DefaultAliyunSMSTemplate smsTemplate = (DefaultAliyunSMSTemplate)new SMSTemplateBuilder().build("short-message.properties");
+
+ //使用单条签名,发送单条短信
+ResponseDTO responseDTO = smsTemplate.sendMessage("1123123123123", new ParamDTO().put("code", "123456"));
+System.out.println(responseDTO.getMessage());
+System.out.println(responseDTO.getCode());
+System.out.println(responseDTO.getBizId());
+
+String[] phoneNumbers = new String[]{"123123123123","12312312323"};
+  //使用单条签名,发送多条短信
+ResponseDTO responseDTO = smsTemplate.sendMessage(phoneNumbers, new ParamDTO().put("code", "123456"));
+System.out.println(responseDTO.getMessage());
+System.out.println(responseDTO.getCode());
+System.out.println(responseDTO.getBizId());
+
+//使用多条签名,发送多条短信
+ResponseDTO responseDTO = smsTemplate.sendBatchMessage(phoneNumbers, new ParamDTO[]{new ParamDTO().put("code", "123456"), new ParamDTO().put("code", "123456")});
+System.out.println(responseDTO.getMessage());
+System.out.println(responseDTO.getCode());
+System.out.println(responseDTO.getBizId());
+
+ //查询短信明细
+ResponseDTO responseDTO = smsTemplate.querySendDetails("123123123", LocalDate.now(Clock.systemDefaultZone()), 1);
+System.out.println(Arrays.toString(responseDTO.getSmsSendDetailDTOs().getSmsSendDetailDTO()));
+
+//查询指定流水的短信明细
+ResponseDTO responseDTO = smsTemplate.querySendDetail("123123123213", LocalDate.now(Clock.systemDefaultZone()), 1, "123123123");
+System.out.println(Arrays.toString(responseDTO.getSmsSendDetailDTOs().getSmsSendDetailDTO()));
+````
+>关于签名和模板,使用控制台申请和操作就行了,个人认为使用API来申请签名和模板是多余的,当然,也可能是我暂时能力不够.
+
+一下是短信服务所有配置:
+
+| 属性                                                         | 阿里云       | 默认值 |
+| ------------------------------------------------------------ | ------------ | :----- |
+| sm.service.type:腾讯云还是阿里云,目前只支持阿里云            | 需要(aliyun) | 无     |
+| sm.service.secret-id:阿里云的AccesskeyId                     | 需要         | 无     |
+| sm.service.secret-key:阿里云的Access Key Secret              | 需要         | 无     |
+| sm.service.region:发送短信的ECS的地域,此配置必填,但是只有在配置专属域名的情况下才有用 | 需要         | 无     |
+| sm.service.sign-name:短信签名,如果想批量发送短信,要多个签名,以逗号分隔 | 需要         | 无     |
+| sm.service.message-templat:短信模板,阿里云的短信模板code,个人认为在项目中可能会使用多中模板,所以建议以模板API的方式 set | 需要         | 无     |
+| sm.service.query-page-size:当使用模板进行查询操作时,此参数就指定查询结果每页的数量,如果不指定,默认为 50 | 可选         | 50     |
