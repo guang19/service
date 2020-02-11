@@ -12,6 +12,7 @@
 
     <!--cos(cloud storage service)阿里云的oss和腾讯云的cos服务-->
     <artifactId>cloud-storage-service</artifactId>
+    <version>${cos.version}</version>
     <name>cloud-storage-service</name>
 
     <dependencies>

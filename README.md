@@ -1,16 +1,16 @@
 # 提供更加便捷的服务(Service Tool)
+
 关于服务2字的含义,我想可以既可以是普通服务,也可以是其他类型的服务,如:云服务...
 
-正在做COS-with-SpringBoot... 
-
-考虑 SMS-with-SpringBoot... 
+#### 正在做美团Leaf 
 
 #### 计划中的服务包括:
 1. COS(Cloud Object Storage:云对象存储服务.腾讯云的COS和阿里云的OSS)
 2. SMS(Short-Message-Service: 短信服务,阿里云和腾讯云(目前只支持阿里云))
-3. 全局唯一ID生成器(考虑美团Leaf)
+3. COS-With-SpringBoot
+4. SMS-With-SpringBoot
+5. 全局唯一ID生成器(考虑美团Leaf)
 
-计划会把其中常用的服务与SpringBoot做一个整合.
 
 ### 1.COS(Cloud Object Storage or Object Storage Service)
 云对象存储服务
@@ -29,7 +29,7 @@ maven:
 <dependency>
   <groupId>com.github.guang19</groupId>
   <artifactId>cloud-storage-service</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
 </dependency>
 
 gradle:
@@ -110,6 +110,25 @@ System.out.println(ossObjectTemplate.getObjectMetaData("b"));
 | cos.service.proxy-username:代理服务器验证的用户名.一般不做配置 |        可选         |       可选       |     无     |
 | cos.service.proxy-password:代理服务器验证的密码,一般不做配置 |        可选         |       可选       |     无     |                  
 
+#### COS-With-SpringBoot
+>在SpringBoot中使用COS,只剩二字: 习惯.
+>在SpringBoot中的配置与上面普通配置相似,只是加上spring前缀即可
+````java
+//此配置决定容器该加载哪种类型模板,当选择aliyun时,腾讯云的所有模板不会加载,当选择tencent cloud时,亦是如此.
+spring.cos.service.type=aliyun/tencent cloud
+
+关键属性需要配置...
+````
+使用:
+````java
+  @Autowired
+  private AliyunOSSBucketTemplate bucketTemplate;
+
+  @Autowired
+  private AliyunOSSObjectTemplate objectTemplate;
+
+接下来直接调api就行了...
+````
 
 ### 2. SMS(Short Message Service)
 短信服务.(因为腾讯云需要购买套餐包才能发送短信,连调试都不行,所以我暂时不写它的短信服务了)
@@ -120,6 +139,18 @@ System.out.println(ossObjectTemplate.getObjectMetaData("b"));
 短信接口的API不多.
 
 #### 使用:
+引入依赖:
+````java
+maven:
+<dependency>
+  <groupId>com.github.guang19</groupId>
+  <artifactId>short-message-service</artifactId>
+  <version>1.0.1</version>
+</dependency>
+
+gradle:
+implementation 'com.github.guang19:short-message-service:1.0.1'
+````
 短信接口的API比较少,但我仍然采用模板+配置的方式来编写.
 在资源文件夹下创建一个叫 sms.properties的文件
 >配置文件内容参照:[配置文件](https://github.com/guang19/service/tree/master/short-message-service/src/main/resources/short-message.properties)
@@ -171,5 +202,20 @@ System.out.println(Arrays.toString(responseDTO.getSmsSendDetailDTOs().getSmsSend
 | sm.service.secret-key:阿里云的Access Key Secret              | 需要         | 无     |
 | sm.service.region:发送短信的ECS的地域,此配置必填,但是只有在配置专属域名的情况下才有用 | 需要         | 无     |
 | sm.service.sign-name:短信签名,如果想批量发送短信,要多个签名,以逗号分隔 | 需要         | 无     |
-| sm.service.message-templat:短信模板,阿里云的短信模板code,个人认为在项目中可能会使用多中模板,所以建议以模板API的方式 set | 需要         | 无     |
+| sm.service.message-template:短信模板,阿里云的短信模板code,个人认为在项目中可能会使用多中模板,所以建议以模板API的方式 set | 需要         | 无     |
 | sm.service.query-page-size:当使用模板进行查询操作时,此参数就指定查询结果每页的数量,如果不指定,默认为 50 | 可选         | 50     |
+
+#### SMS-With-SpringBoot
+>在SpringBoot中的配置与上面普通配置相似,只是加上spring前缀即可
+````java
+//此配置决定容器该加载哪种类型模板,当选择aliyun时才加载SMS模板,暂且不支持腾讯云的短信服务,所以此选项只有aliyun
+spring.cos.service.type=aliyun
+
+关键属性需要配置...
+````
+使用:
+````java
+  @Autowired
+  private AliyunSMSTemplate smsTemplate;
+
+接下来直接调api就行了...

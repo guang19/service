@@ -16,7 +16,7 @@ import lombok.Getter;
 public class TenCloudCOSClientProperties extends COSClientProperties
 {
     //region
-    protected final String region;
+    private final String region;
 
     //app id
     private final String appId;

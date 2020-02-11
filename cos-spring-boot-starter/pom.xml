@@ -10,22 +10,27 @@
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
 
-    <!--short message service 短信服务-->
-    <artifactId>short-message-service</artifactId>
-    <version>${sms.version}</version>
-    <name>short-message-service</name>
+    <!--cloud object storage service with spring boot-->
+    <artifactId>cos-spring-boot-starter</artifactId>
+    <version>${cos-with-springboot.version}</version>
+    <name>cos-spring-boot-starter</name>
 
     <dependencies>
-        <!--service common-->
+        <!--cloud object storage service-->
         <dependency>
             <groupId>com.github.guang19</groupId>
-            <artifactId>service-common</artifactId>
+            <artifactId>cloud-storage-service</artifactId>
         </dependency>
 
-        <!--aliyun short message sdk-->
+        <!--spring boot auto configuration-->
         <dependency>
-            <groupId>com.aliyun</groupId>
-            <artifactId>aliyun-java-sdk-core</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <!--lombok-->
@@ -34,12 +39,6 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
-        <!--junit4-->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
 
+    </dependencies>
 </project>

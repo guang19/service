@@ -15,6 +15,8 @@
         <module>cloud-storage-service</module>
         <module>short-message-service</module>
         <module>service-common</module>
+        <module>cos-spring-boot-starter</module>
+        <module>sms-spring-boot-starter</module>
     </modules>
 
     <url>https://github.com/guang19/service</url>
@@ -56,15 +58,27 @@
 
     <properties>
         <java.version>11</java.version>
-        <project.version>1.0.0</project.version>
+        <!--项目的子模块版本-->
+        <service-common.version>1.0.1</service-common.version>
+        <cos.version>1.0.1</cos.version>
+        <cos-with-springboot.version>1.0.1</cos-with-springboot.version>
+        <sms.version>1.0.1</sms.version>
+        <sms-with-springboot.version>1.0.1</sms-with-springboot.version>
+
+        <!--插件依赖-->
         <maven-compiler.version>3.1</maven-compiler.version>
         <maven-source.version>3.2.1</maven-source.version>
         <maven-java-doc.version>3.0.1</maven-java-doc.version>
         <maven-gpg.version>1.6</maven-gpg.version>
+
+        <!--sdk依赖-->
         <tencent-cos.version>5.6.14</tencent-cos.version>
 <!--        <tencent-sms.version>1.0.6</tencent-sms.version>-->
         <aliyun-oss.version>3.8.0</aliyun-oss.version>
         <aliyun-core.version>4.5.0</aliyun-core.version>
+        <boot.version>2.2.4.RELEASE</boot.version>
+
+        <!--第三方依赖-->
         <javax-xml-bind.version>2.3.1</javax-xml-bind.version>
         <dom4j.version>1.6.1</dom4j.version>
         <lombok.version>1.18.10</lombok.version>
@@ -78,21 +92,34 @@
             <dependency>
                 <groupId>com.github.guang19</groupId>
                 <artifactId>cloud-storage-service</artifactId>
-                <version>${project.version}</version>
+                <version>${cos.version}</version>
+            </dependency>
+            <!--cos with spring boot-->
+            <dependency>
+                <groupId>com.github.guang19</groupId>
+                <artifactId>cos-spring-boot-starter</artifactId>
+                <version>${cos-with-springboot.version}</version>
             </dependency>
 
             <!--short message service-->
             <dependency>
                 <groupId>com.github.guang19</groupId>
                 <artifactId>short-message-service</artifactId>
-                <version>${project.version}</version>
+                <version>${sms.version}</version>
+            </dependency>
+
+            <!--sms with spring boot-->
+            <dependency>
+                <groupId>com.github.guang19</groupId>
+                <artifactId>sms-spring-boot-starter</artifactId>
+                <version>${sms-with-springboot.version}</version>
             </dependency>
 
             <!--service common-->
             <dependency>
                 <groupId>com.github.guang19</groupId>
                 <artifactId>service-common</artifactId>
-                <version>${project.version}</version>
+                <version>${service-common.version}</version>
             </dependency>
 
             <!--tencent cloud cos sdk-->
@@ -123,6 +150,18 @@
                 <version>${aliyun-core.version}</version>
             </dependency>
 
+            <!--spring boot auto configuration-->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-autoconfigure</artifactId>
+                <version>${boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-configuration-processor</artifactId>
+                <version>${boot.version}</version>
+            </dependency>
+
             <!--java ee xml,我的jdk为11版本,在jdk9,java就已经模块化,把javaee的包移除了，而阿里云oss sdk需要此包,所以需要引入-->
             <dependency>
                 <groupId>javax.xml.bind</groupId>
@@ -135,12 +174,6 @@
                 <groupId>dom4j</groupId>
                 <artifactId>dom4j</artifactId>
                 <version>${dom4j.version}</version>
-            </dependency>
-
-            <!--spring boot starter-->
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter</artifactId>
             </dependency>
 
             <!--apache common logging-->

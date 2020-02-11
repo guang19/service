@@ -75,10 +75,11 @@ public class DefaultSMSProfileConfigurationParser implements SMSProfileConfigura
                 throw new SMSProfileConfigurationException("property of region can not be missing");
             }
 
-            smsProfileProperties = new AliyunSMSProfileProperties(properties.getProperty("sm.service.region"),
-                                                                  properties.getProperty("sm.service.sign-name").split(","),
-                                                                  properties.getProperty("sm.service.secret-id"),
-                                                                  properties.getProperty("sm.service.secret-key"));
+            smsProfileProperties = new AliyunSMSProfileProperties(
+                    properties.getProperty("sm.service.secret-id"),
+                    properties.getProperty("sm.service.secret-key"),
+                    properties.getProperty("sm.service.region"),
+                    properties.getProperty("sm.service.sign-name").split(","));
         }
         else
         {
