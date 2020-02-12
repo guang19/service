@@ -36,7 +36,7 @@ public abstract class BaseAliyunSMSTemplate implements AliyunSMSTemplate
     private long queryPageSize;
 
     //logger
-    protected final Logger logger = LoggerFactory.getLogger(BaseAliyunSMSTemplate.class);
+    protected static final Logger logger = LoggerFactory.getLogger(BaseAliyunSMSTemplate.class);
 
     /**
      * 阿里云sms配置属性构造

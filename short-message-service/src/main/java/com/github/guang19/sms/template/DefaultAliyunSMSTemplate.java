@@ -77,9 +77,12 @@ public class DefaultAliyunSMSTemplate extends BaseAliyunSMSTemplate
             throw new IllegalArgumentException("send message to up to 1000 phoneNumbers at the same time");
         }
         CommonRequest request = getSMSRequest(NORMAL);
-        request.putQueryParameter("TemplateParam",SMSUtil.toJson(param.getMap()));
-        request.putQueryParameter("PhoneNumbers",phoneNumbers.length == 1 ? phoneNumbers[0] : Arrays.toString(phoneNumbers).replaceAll("[\\[\\]]",""));
-        return smsRequest(request);
+        synchronized (this)
+        {
+            request.putQueryParameter("TemplateParam",SMSUtil.toJson(param.getMap()));
+            request.putQueryParameter("PhoneNumbers",phoneNumbers.length == 1 ? phoneNumbers[0] : Arrays.toString(phoneNumbers).replaceAll("[\\[\\]]",""));
+            return smsRequest(request);
+        }
     }
 
     /**
@@ -115,8 +118,11 @@ public class DefaultAliyunSMSTemplate extends BaseAliyunSMSTemplate
             throw new IllegalArgumentException("send message to up to 100 phoneNumbers at the same time");
         }
         CommonRequest request = getSMSRequest(BATCH);
-        request.putQueryParameter("PhoneNumberJson",SMSUtil.toJson(phoneNumbers));
-        request.putQueryParameter("TemplateParamJson",SMSUtil.toJson(Arrays.stream(params).map(ParamDTO::getMap).collect(Collectors.toList())));
-        return smsRequest(request);
+        synchronized (this)
+        {
+            request.putQueryParameter("PhoneNumberJson",SMSUtil.toJson(phoneNumbers));
+            request.putQueryParameter("TemplateParamJson",SMSUtil.toJson(Arrays.stream(params).map(ParamDTO::getMap).collect(Collectors.toList())));
+            return smsRequest(request);
+        }
     }
 }

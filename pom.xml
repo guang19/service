@@ -6,7 +6,7 @@
 
     <groupId>com.github.guang19</groupId>
     <artifactId>service</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 
     <name>service</name>
     <description>common service tools and common develop tools</description>
@@ -59,11 +59,11 @@
     <properties>
         <java.version>11</java.version>
         <!--项目的子模块版本-->
-        <service-common.version>1.0.1</service-common.version>
-        <cos.version>1.0.1</cos.version>
-        <cos-with-springboot.version>1.0.1</cos-with-springboot.version>
-        <sms.version>1.0.1</sms.version>
-        <sms-with-springboot.version>1.0.1</sms-with-springboot.version>
+        <service-common.version>1.0.2</service-common.version>
+        <cos.version>1.0.2</cos.version>
+        <cos-with-springboot.version>1.0.2</cos-with-springboot.version>
+        <sms.version>1.0.2</sms.version>
+        <sms-with-springboot.version>1.0.2</sms-with-springboot.version>
 
         <!--插件依赖-->
         <maven-compiler.version>3.1</maven-compiler.version>

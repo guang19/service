@@ -46,7 +46,7 @@ public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjec
     private final Map<String,TransferManager> copyTransferManagerMap = new ConcurrentHashMap<>();
 
     //logger
-    protected final Logger logger = LoggerFactory.getLogger(BaseTenCloudCOSObjectTemplate.class);
+    protected static final Logger logger = LoggerFactory.getLogger(BaseTenCloudCOSObjectTemplate.class);
 
     /**
      * 构造腾讯云COS对象操作基础模板

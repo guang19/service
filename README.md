@@ -2,15 +2,11 @@
 
 关于服务2字的含义,我想可以既可以是普通服务,也可以是其他类型的服务,如:云服务...
 
-#### 正在做美团Leaf 
-
 #### 计划中的服务包括:
 1. COS(Cloud Object Storage:云对象存储服务.腾讯云的COS和阿里云的OSS)
 2. SMS(Short-Message-Service: 短信服务,阿里云和腾讯云(目前只支持阿里云))
 3. COS-With-SpringBoot
 4. SMS-With-SpringBoot
-5. 全局唯一ID生成器(考虑美团Leaf)
-
 
 ### 1.COS(Cloud Object Storage or Object Storage Service)
 云对象存储服务
@@ -29,7 +25,7 @@ maven:
 <dependency>
   <groupId>com.github.guang19</groupId>
   <artifactId>cloud-storage-service</artifactId>
-  <version>1.0.1</version>
+  <version>1.0.2</version>
 </dependency>
 
 gradle:
@@ -112,6 +108,19 @@ System.out.println(ossObjectTemplate.getObjectMetaData("b"));
 
 #### COS-With-SpringBoot
 >在SpringBoot中使用COS,只剩二字: 习惯.
+
+引入依赖
+````java
+maven:
+<dependency>
+  <groupId>com.github.guang19</groupId>
+  <artifactId>cos-spring-boot-starter</artifactId>
+  <version>1.0.2</version>
+</dependency>
+
+gradle:
+implementation 'com.github.guang19:cos-spring-boot-starter:1.0.2'
+````
 >在SpringBoot中的配置与上面普通配置相似,只是加上spring前缀即可
 ````java
 //此配置决定容器该加载哪种类型模板,当选择aliyun时,腾讯云的所有模板不会加载,当选择tencent cloud时,亦是如此.
@@ -145,7 +154,7 @@ maven:
 <dependency>
   <groupId>com.github.guang19</groupId>
   <artifactId>short-message-service</artifactId>
-  <version>1.0.1</version>
+  <version>1.0.2</version>
 </dependency>
 
 gradle:
@@ -193,7 +202,7 @@ System.out.println(Arrays.toString(responseDTO.getSmsSendDetailDTOs().getSmsSend
 ````
 >关于签名和模板,使用控制台申请和操作就行了,个人认为使用API来申请签名和模板是多余的,当然,也可能是我暂时能力不够.
 
-一下是短信服务所有配置:
+>以下是短信服务所有配置:
 
 | 属性                                                         | 阿里云       | 默认值 |
 | ------------------------------------------------------------ | ------------ | :----- |
@@ -206,6 +215,17 @@ System.out.println(Arrays.toString(responseDTO.getSmsSendDetailDTOs().getSmsSend
 | sm.service.query-page-size:当使用模板进行查询操作时,此参数就指定查询结果每页的数量,如果不指定,默认为 50 | 可选         | 50     |
 
 #### SMS-With-SpringBoot
+引入依赖
+````java
+<dependency>
+  <groupId>com.github.guang19</groupId>
+  <artifactId>sms-spring-boot-starter</artifactId>
+  <version>1.0.2</version>
+</dependency>
+
+gradle:
+implementation 'com.github.guang19:sms-spring-boot-starter:1.0.2'
+````
 >在SpringBoot中的配置与上面普通配置相似,只是加上spring前缀即可
 ````java
 //此配置决定容器该加载哪种类型模板,当选择aliyun时才加载SMS模板,暂且不支持腾讯云的短信服务,所以此选项只有aliyun
@@ -217,5 +237,11 @@ spring.cos.service.type=aliyun
 ````java
   @Autowired
   private AliyunSMSTemplate smsTemplate;
+````
+>接下来直接调api就行了...
 
-接下来直接调api就行了...
+其他:
+本来想把美团Leaf也做一下,可准备写的时候,才想起来我是要做一个工具的项目,而Leaf已经很好的融合了SpringBoot成为了
+一个Server,所以就算了.写到这里有点累了,学学其他东西去了,以后有好的工具我都会考虑融入到这个项目来.
+
+Leaf参考: [Leaf](https://github.com/Meituan-Dianping/Leaf)

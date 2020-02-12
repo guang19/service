@@ -46,7 +46,7 @@ public abstract class BaseAliyunOSSObjectTemplate implements AliyunOSSObjectTemp
     private String uploadImgStyle;
 
     //logger
-    protected final Logger logger = LoggerFactory.getLogger(BaseAliyunOSSBucketTemplate.class);
+    protected static final Logger logger = LoggerFactory.getLogger(BaseAliyunOSSBucketTemplate.class);
 
 
     /**
