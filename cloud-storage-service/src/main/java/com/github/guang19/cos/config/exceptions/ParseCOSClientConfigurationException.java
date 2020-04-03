@@ -1,4 +1,4 @@
-package com.github.guang19.cos.config.exception;
+package com.github.guang19.cos.config.exceptions;
 
 /**
  * @author yangguang

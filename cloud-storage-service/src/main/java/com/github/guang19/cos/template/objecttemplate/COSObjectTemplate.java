@@ -97,7 +97,7 @@ public interface COSObjectTemplate
     /**
      * <p>上传文件到存储桶的默认目录,注意,是文件路径,不是目录</p>
      * @param filePath      本地文件路径
-     * @return              上传成功后,对象的url
+     * @return              上传成功后, 对象的url，如果上传失败，则返回null
      */
     public String uploadFile(String filePath);
 
@@ -105,7 +105,7 @@ public interface COSObjectTemplate
      * <p>上传文件到存储桶</p>
      * @param cosDir           需要将对象上传到存储桶的哪个目录,必须以 '/' 结尾,允许空串
      * @param filePath      本地文件路径
-     * @return              上传成功后,对象的url
+     * @return              上传成功后, 对象的url，如果上传失败，则返回null
      */
     public String uploadFile(String cosDir,String filePath);
 
@@ -113,7 +113,7 @@ public interface COSObjectTemplate
      * <p>上传对象到存储桶的默认目录</p>
      * @param fileStream    对象的输入流
      * @param objectName    指定上传后的对象名,但不需要指定后缀,如: a.jpg, a , b.jpg , b , cat 都行
-     * @return              上传成功后,对象的url
+     * @return              上传成功后, 对象的url，如果上传失败，则返回null
      */
     public String uploadFile(InputStream fileStream, String objectName);
 
@@ -122,7 +122,7 @@ public interface COSObjectTemplate
      * @param fileStream    对象的输入流
      * @param cosDir           需要将对象上传到存储桶的哪个目录,必须以 '/' 结尾,允许空串
      * @param objectName    对象名,但不需要指定后缀,如: a.jpg, a , b.jpg , b , cat 都行
-     * @return              上传成功后,对象的url
+     * @return              上传成功后, 对象的url，如果上传失败，则返回null
      */
     public String uploadFile(InputStream fileStream,String cosDir,String objectName);
 

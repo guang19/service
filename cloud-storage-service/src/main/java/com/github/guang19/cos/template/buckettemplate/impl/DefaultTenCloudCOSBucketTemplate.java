@@ -1,12 +1,9 @@
-package com.github.guang19.cos.template.buckettemplate;
+package com.github.guang19.cos.template.buckettemplate.impl;
 
 import com.github.guang19.cos.config.TenCloudCOSClientProperties;
-import com.github.guang19.cos.util.COSUtil;
-import com.github.guang19.util.CommonUtil;
-import com.qcloud.cos.exception.CosClientException;
+import com.github.guang19.cos.template.buckettemplate.BaseTenCloudCOSBucketTemplate;
 import com.qcloud.cos.model.Bucket;
 import com.qcloud.cos.model.CannedAccessControlList;
-import com.qcloud.cos.model.CreateBucketRequest;
 
 /**
  * @author yangguang
@@ -26,7 +23,7 @@ public class DefaultTenCloudCOSBucketTemplate extends BaseTenCloudCOSBucketTempl
     }
 
     /**
-     * <p>创建存储桶</p>
+     * <p>创建存储桶,默认为私有读写</p>
      *
      * @param bucketName 存储桶名
      * @return 创建好的存储桶bucket
@@ -59,33 +56,5 @@ public class DefaultTenCloudCOSBucketTemplate extends BaseTenCloudCOSBucketTempl
     public Bucket createBucketPublicRead(String bucketName)
     {
         return createBucket(bucketName,CannedAccessControlList.PublicRead);
-    }
-
-
-    /**
-     * <p>创建存储桶模板</p>
-     * @param bucketName            存储桶名
-     * @param accessControlList     访问权限
-     * @return                      创建好的存储桶
-     */
-    private Bucket createBucket(String bucketName, CannedAccessControlList accessControlList)
-    {
-        CommonUtil.assertObjectNull("bucketName",bucketName);
-        CreateBucketRequest createBucketRequest = new CreateBucketRequest(getStandardBucketName(bucketName));
-        createBucketRequest.setCannedAcl(accessControlList);
-        Bucket bucket = null;
-        try
-        {
-            bucket = cosClient.createBucket(createBucketRequest);
-        }
-        catch (CosClientException e)
-        {
-            logger.error("error during create bucket : " .concat(e.getMessage()));
-        }
-        finally
-        {
-            close();
-        }
-        return bucket;
     }
 }

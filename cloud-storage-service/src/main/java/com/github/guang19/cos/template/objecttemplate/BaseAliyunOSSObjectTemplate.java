@@ -3,10 +3,7 @@ package com.github.guang19.cos.template.objecttemplate;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.OSSException;
-import com.aliyun.oss.model.DeleteObjectsRequest;
-import com.aliyun.oss.model.ListObjectsRequest;
-import com.aliyun.oss.model.ObjectListing;
-import com.aliyun.oss.model.ObjectMetadata;
+import com.aliyun.oss.model.*;
 import com.github.guang19.cos.config.AliyunOSSClientProperties;
 import com.github.guang19.cos.template.buckettemplate.BaseAliyunOSSBucketTemplate;
 import com.github.guang19.cos.util.COSUtil;
@@ -14,6 +11,7 @@ import com.github.guang19.util.CommonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,12 +25,6 @@ import java.util.stream.Collectors;
  */
 public abstract class BaseAliyunOSSObjectTemplate implements AliyunOSSObjectTemplate
 {
-    //阿里云COS客户端属性
-    private  final AliyunOSSClientProperties ossClientProperties;
-
-    //阿里云OSS客户端
-    protected final OSS ossClient;
-
     //当前模板endpoint
     private final String endpoint;
 
@@ -45,8 +37,13 @@ public abstract class BaseAliyunOSSObjectTemplate implements AliyunOSSObjectTemp
     //图片上传时的样式
     private String uploadImgStyle;
 
-    //logger
-    protected static final Logger logger = LoggerFactory.getLogger(BaseAliyunOSSBucketTemplate.class);
+    private int uploadLimitSize;
+
+    //阿里云OSS客户端
+    protected final OSS ossClient;
+
+    //LOGGER
+    protected static final Logger LOGGER = LoggerFactory.getLogger(BaseAliyunOSSBucketTemplate.class);
 
 
     /**
@@ -55,11 +52,11 @@ public abstract class BaseAliyunOSSObjectTemplate implements AliyunOSSObjectTemp
      */
     protected BaseAliyunOSSObjectTemplate(AliyunOSSClientProperties ossClientProperties)
     {
-        this.ossClientProperties = ossClientProperties;
         this.endpoint = ossClientProperties.getEndpoint();
         this.cname = ossClientProperties.getCname();
         this.objectTemplateBucket = ossClientProperties.getObjectTemplateBucket();
         this.uploadImgStyle = ossClientProperties.getUploadImgStyle();
+        this.uploadLimitSize = ossClientProperties.getUploadLimitSize();
         this.ossClient = new OSSClient(cname != null ? cname : endpoint, ossClientProperties.getCredentialsProvider(),
                 COSUtil.newAliyunOSSClientConfig(ossClientProperties));
     }
@@ -89,7 +86,7 @@ public abstract class BaseAliyunOSSObjectTemplate implements AliyunOSSObjectTemp
     @Override
     public List<String> getAllObjectsWithKeyPrefix(String keyPrefix)
     {
-        CommonUtil.assertObjectNull("key prefix",keyPrefix);
+        CommonUtil.assertObjectNull(keyPrefix,"key prefix cannot be null.");
         ListObjectsRequest listObjectsRequest = new ListObjectsRequest();
         listObjectsRequest.setBucketName(objectTemplateBucket);
         listObjectsRequest.setPrefix(keyPrefix);
@@ -97,20 +94,22 @@ public abstract class BaseAliyunOSSObjectTemplate implements AliyunOSSObjectTemp
         listObjectsRequest.setMaxKeys(1000);
         List<String> keys = new LinkedList<>();
         ObjectListing objectListing = null;
-        String nextMarker = null;
         try
         {
             do
             {
                 objectListing = ossClient.listObjects(listObjectsRequest);
                 objectListing.getObjectSummaries().forEach(ossObjectSummary -> keys.add(ossObjectSummary.getKey()));
-                nextMarker = objectListing.getNextMarker();
-                listObjectsRequest.setMarker(nextMarker);
+                listObjectsRequest.setMarker(objectListing.getNextMarker());
             } while (objectListing.isTruncated());
         }
         catch (OSSException e)
         {
-            logger.error("error during cos client batch get object : ".concat(COSUtil.parseAliyunErrorMessage(e)));
+            LOGGER.error("an error occurred while cos client batch get object : {}",COSUtil.parseAliyunErrorMessage(e));
+        }
+        finally
+        {
+            close();
         }
         return keys;
     }
@@ -182,20 +181,23 @@ public abstract class BaseAliyunOSSObjectTemplate implements AliyunOSSObjectTemp
     @Override
     public Map<String, Object> getObjectMetaData(String key)
     {
-        CommonUtil.assertObjectNull("key",key);
-        Map<String,Object> metadata = null;
+        CommonUtil.assertObjectNull(key,"key cannot be null.");
         try
         {
             ObjectMetadata objectMetadata = ossClient.getObjectMetadata(objectTemplateBucket, key);
             if(objectMetadata != null)
             {
-                metadata = objectMetadata.getRawMetadata();
+                return objectMetadata.getRawMetadata();
             }
         }catch (OSSException e)
         {
-            logger.error("error during get object metadata : ".concat(COSUtil.parseAliyunErrorMessage(e)));
+            LOGGER.error("an error occurred while oss get object metadata : {}" , COSUtil.parseAliyunErrorMessage(e));
         }
-        return metadata;
+        finally
+        {
+            close();
+        }
+        return null;
     }
 
     /**
@@ -206,14 +208,14 @@ public abstract class BaseAliyunOSSObjectTemplate implements AliyunOSSObjectTemp
     @Override
     public void deleteObjectWithKey(String key)
     {
-        CommonUtil.assertObjectNull("key",key);
+        CommonUtil.assertObjectNull(key,"key cannot be null.");
         try
         {
             ossClient.deleteObject(objectTemplateBucket,key);
         }
         catch (OSSException e)
         {
-            logger.error("error during delete object : ".concat(COSUtil.parseAliyunErrorMessage(e)));
+            LOGGER.error("an error occurred while oss delete object : {}", COSUtil.parseAliyunErrorMessage(e));
         }
         finally
         {
@@ -229,7 +231,7 @@ public abstract class BaseAliyunOSSObjectTemplate implements AliyunOSSObjectTemp
     @Override
     public void deleteObjectsWithKeys(List<String> keys)
     {
-        CommonUtil.assertListEmpty("keys",keys);
+        CommonUtil.assertCollectionEmpty(keys,"keys cannot be empty.");
         DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(objectTemplateBucket).withKeys(keys);
         try
         {
@@ -237,7 +239,7 @@ public abstract class BaseAliyunOSSObjectTemplate implements AliyunOSSObjectTemp
         }
         catch (OSSException e)
         {
-            logger.error("error during cos client batch delete object : ".concat(e.getMessage()));
+            LOGGER.error("an error occurred while cos batch delete object : {}" , COSUtil.parseAliyunErrorMessage(e));
         }
         finally
         {
@@ -253,11 +255,11 @@ public abstract class BaseAliyunOSSObjectTemplate implements AliyunOSSObjectTemp
     @Override
     public void deleteObjectWithUrl(String url)
     {
-        CommonUtil.assertObjectNull("url",url);
+        CommonUtil.assertObjectNull(url,"url cannot be null.");
         String domainPrefix = COSUtil.getAliyunObjectUrlPrefix(objectTemplateBucket,endpoint,cname);
         if(!url.startsWith(domainPrefix))
         {
-            throw new IllegalArgumentException("url must be aliyun url");
+            throw new IllegalArgumentException("url must be aliyun url.");
         }
         else
         {
@@ -273,7 +275,7 @@ public abstract class BaseAliyunOSSObjectTemplate implements AliyunOSSObjectTemp
     @Override
     public void deleteObjectsWithUrls(List<String> urls)
     {
-        CommonUtil.assertListEmpty("urls",urls);
+        CommonUtil.assertCollectionEmpty(urls,"urls cannot be empty.");
         String domainPrefix = COSUtil.getAliyunObjectUrlPrefix(objectTemplateBucket,endpoint,cname);
         deleteObjectsWithKeys(urls.stream().filter(url -> url.startsWith(domainPrefix)).map(url -> url.replace(domainPrefix,"")).collect(Collectors.toList()));
     }
@@ -287,7 +289,7 @@ public abstract class BaseAliyunOSSObjectTemplate implements AliyunOSSObjectTemp
     @Override
     public String uploadFile(String filePath)
     {
-        throw new UnsupportedOperationException("can not upload file with base template");
+        throw new UnsupportedOperationException("can not upload file with base template.");
     }
 
     /**
@@ -300,7 +302,7 @@ public abstract class BaseAliyunOSSObjectTemplate implements AliyunOSSObjectTemp
     @Override
     public String uploadFile(String cosDir, String filePath)
     {
-        throw new UnsupportedOperationException("can not upload file with base template");
+        throw new UnsupportedOperationException("can not upload file with base template.");
     }
 
     /**
@@ -313,7 +315,7 @@ public abstract class BaseAliyunOSSObjectTemplate implements AliyunOSSObjectTemp
     @Override
     public String uploadFile(InputStream fileStream, String objectName)
     {
-        throw new UnsupportedOperationException("can not upload file with base template");
+        throw new UnsupportedOperationException("can not upload file with base template.");
     }
 
     /**
@@ -327,7 +329,7 @@ public abstract class BaseAliyunOSSObjectTemplate implements AliyunOSSObjectTemp
     @Override
     public String uploadFile(InputStream fileStream, String cosDir, String objectName)
     {
-        throw new UnsupportedOperationException("can not upload file with base template");
+        throw new UnsupportedOperationException("can not upload file with base template.");
     }
 
 
@@ -355,7 +357,7 @@ public abstract class BaseAliyunOSSObjectTemplate implements AliyunOSSObjectTemp
     @Override
     public void downloadFile(String key, String saveFile)
     {
-        throw new UnsupportedOperationException("can not download file with base template");
+        throw new UnsupportedOperationException("can not download file with base template.");
     }
 
     /**
@@ -369,7 +371,7 @@ public abstract class BaseAliyunOSSObjectTemplate implements AliyunOSSObjectTemp
     @Override
     public void downloadAllFiles(String saveDir)
     {
-        throw new UnsupportedOperationException("can not download file with base template");
+        throw new UnsupportedOperationException("can not download file with base template.");
     }
 
     /**
@@ -441,7 +443,7 @@ public abstract class BaseAliyunOSSObjectTemplate implements AliyunOSSObjectTemp
      */
     public int getUploadLimitSize()
     {
-        return ossClientProperties.getUploadLimitSize();
+        return uploadLimitSize;
     }
 
     /**
@@ -462,5 +464,83 @@ public abstract class BaseAliyunOSSObjectTemplate implements AliyunOSSObjectTemp
     protected final String getImgObjectUrl(String objectKey)
     {
         return COSUtil.getAliyunObjectUrl(objectTemplateBucket,endpoint,cname,uploadImgStyle,objectKey);
+    }
+
+
+    /**
+     * 下载小文件
+     * @param key           对象key
+     * @param saveFile      保存到文件
+     * @throws IOException   IO异常
+     */
+    protected final void downloadSmallFile(String key,String saveFile) throws IOException
+    {
+        ossClient.getObject(new GetObjectRequest(getObjectTemplateBucket(),key),CommonUtil.createFile(saveFile));
+    }
+
+    /**
+     * 下载大文件
+     * @param key           对象key
+     * @param saveFile      保存到文件
+     * @throws Throwable    throwable
+     */
+    protected final void downloadLargeFile(String key,String saveFile) throws Throwable
+    {
+        DownloadFileRequest downloadFileRequest = new DownloadFileRequest(getObjectTemplateBucket(),key);
+        downloadFileRequest.setDownloadFile(saveFile);
+        downloadFileRequest.setPartSize(COSUtil.getLargeObjectPartSize());
+        downloadFileRequest.setTaskNum(5);
+        downloadFileRequest.setEnableCheckpoint(true);
+        downloadFileRequest.setCheckpointFile(saveFile + "checkpoint");
+        ossClient.downloadFile(downloadFileRequest);
+    }
+
+
+    /**
+     * 拷贝小对象
+     * @param sourceKey         源对象key
+     * @param targetBucketName  目标存储桶名
+     * @param targetKey         目标对象key
+     */
+    protected final void copySmallObject(String sourceKey, String targetBucketName, String targetKey)
+    {
+        CopyObjectRequest copyObjectRequest = new CopyObjectRequest(getObjectTemplateBucket(),sourceKey,targetBucketName,targetKey);
+        ossClient.copyObject(copyObjectRequest);
+    }
+
+    /**
+     * 拷贝大对象
+     * @param contentLength         对象长度
+     * @param sourceKey             源对象key
+     * @param targetBucketName      目标存储桶
+     * @param targetKey             目标key
+     */
+    protected final void copyLargeObject(long contentLength, String sourceKey, String targetBucketName, String targetKey)
+    {
+        //计算分片总数
+        long partSize = COSUtil.getLargeObjectPartSize();
+        int partCount = (int)(contentLength / partSize);
+        if(contentLength % partSize != 0)
+        {
+            ++partCount;
+        }
+        InitiateMultipartUploadRequest multipartUploadRequest = new InitiateMultipartUploadRequest(targetBucketName,targetKey);
+        InitiateMultipartUploadResult multipartUploadResult = ossClient.initiateMultipartUpload(multipartUploadRequest);
+        UploadPartCopyRequest copyRequest = new UploadPartCopyRequest(getObjectTemplateBucket(),sourceKey,targetBucketName,targetKey);
+        copyRequest.setUploadId(multipartUploadResult.getUploadId());
+        List<PartETag> partETags = new LinkedList<>();
+        for(int i = 0 ; i < partCount ; ++i)
+        {
+            //已经拷贝过的大小
+            long alreadyCopy = partSize * i;
+            long size = Math.min(partSize, contentLength - alreadyCopy);
+            copyRequest.setPartSize(size);
+            copyRequest.setBeginIndex(alreadyCopy);
+            copyRequest.setPartNumber(i + 1);
+            UploadPartCopyResult copyResult = ossClient.uploadPartCopy(copyRequest);
+            partETags.add(copyResult.getPartETag());
+        }
+        CompleteMultipartUploadRequest completeMultipartUploadRequest = new CompleteMultipartUploadRequest(targetBucketName,targetKey,multipartUploadResult.getUploadId(),partETags);
+        ossClient.completeMultipartUpload(completeMultipartUploadRequest);
     }
 }

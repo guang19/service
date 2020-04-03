@@ -1,6 +1,7 @@
-package com.github.guang19.cos.template.objecttemplate;
+package com.github.guang19.cos.template.objecttemplate.impl;
 
 import com.github.guang19.cos.config.TenCloudCOSClientProperties;
+import com.github.guang19.cos.template.objecttemplate.BaseTenCloudCOSObjectTemplate;
 import com.github.guang19.cos.util.COSUtil;
 import com.github.guang19.util.CommonUtil;
 import com.qcloud.cos.model.GetObjectRequest;
@@ -54,7 +55,7 @@ public class DefaultTenCloudCOSObjectTemplate extends BaseTenCloudCOSObjectTempl
      *
      * @param cosDir      需要将对象上传到存储桶的哪个目录,必须以 '/' 结尾,允许空串
      * @param filePath    本地文件路径
-     * @return 上传成功后, 对象的url
+     * @return 上传成功后, 对象的url，如果上传失败，则返回null
      */
     @Override
     public String uploadFile(String cosDir, String filePath)
@@ -62,18 +63,17 @@ public class DefaultTenCloudCOSObjectTemplate extends BaseTenCloudCOSObjectTempl
         //校验参数
         COSUtil.checkCOSDir(cosDir);
         Path path = CommonUtil.checkLocalFile(filePath);
-        String key = null;
         try
         {
             //计算对象的key
-            key = cosDir.isBlank() ? path.getFileName().toString() : cosDir.concat(path.getFileName().toString());
+            String key = (cosDir.isEmpty() || cosDir.trim().isEmpty()) ? path.getFileName().toString() : cosDir + path.getFileName().toString();
             return putObjectToCOS(Files.newInputStream(path),key,Files.probeContentType(path));
         }
         catch (Exception e)
         {
-            logger.error("error during cos client upload object : ".concat(e.getMessage()));
+            LOGGER.error("an error occurred while cos upload object : {}" , e.getMessage());
+            return null;
         }
-        return getObjectUrl(key);
     }
 
     /**
@@ -81,7 +81,7 @@ public class DefaultTenCloudCOSObjectTemplate extends BaseTenCloudCOSObjectTempl
      *
      * @param fileStream 文件的输入流
      * @param objectName      指定上传后的对象名,但不需要指定后缀,如: a.jpg, a , b.jpg , b , cat 都行
-     * @return 上传成功后, 对象的url
+     * @return 上传成功后, 对象的url，如果上传失败，则返回null
      */
     @Override
     public String uploadFile(InputStream fileStream, String objectName)
@@ -95,7 +95,7 @@ public class DefaultTenCloudCOSObjectTemplate extends BaseTenCloudCOSObjectTempl
      * @param fileStream 文件的输入流
      * @param cosDir        需要将对象上传到存储桶的哪个目录,必须以 '/' 结尾,允许空串
      * @param objectName   文件名,但不需要指定后缀,如: a.jpg, a , b.jpg , b , cat 都行
-     * @return 上传成功后, 对象的url
+     * @return 上传成功后, 对象的url，如果上传失败，则返回null
      */
     @Override
     public String uploadFile(InputStream fileStream, String cosDir, String objectName)
@@ -104,7 +104,7 @@ public class DefaultTenCloudCOSObjectTemplate extends BaseTenCloudCOSObjectTempl
         COSUtil.checkCOSDir(cosDir);
         COSUtil.checkObjectName(objectName);
         //计算对象的key
-        String key = cosDir.isBlank() ? objectName : cosDir.concat(objectName);
+        String key = (cosDir.isEmpty() || cosDir.trim().isEmpty()) ? objectName : cosDir + objectName;
         return putObjectToCOS(fileStream,key,null);
     }
 
@@ -115,7 +115,7 @@ public class DefaultTenCloudCOSObjectTemplate extends BaseTenCloudCOSObjectTempl
      * @param inputStream   对象内容流
      * @param key           对象key
      * @param contentType   对象类型: image/png,image/jpg...
-     * @return              对象在cos上的url
+     * @return              对象在cos上的url,如果上传失败，则返回null
      */
     private String putObjectToCOS(InputStream inputStream,String key,String contentType)
     {
@@ -134,10 +134,13 @@ public class DefaultTenCloudCOSObjectTemplate extends BaseTenCloudCOSObjectTempl
             //阻塞上传
             Upload upload = transferManager.upload(putObjectRequest);
             upload.waitForUploadResult();
+            //返回对象url
+            return getObjectUrl(key);
         }
         catch (Exception e)
         {
-            logger.error("error during cos client upload object : ".concat(e.getMessage()));
+            LOGGER.error("an error occurred while cos upload object : {}" ,e.getMessage());
+            return null;
         }
         finally
         {
@@ -147,10 +150,8 @@ public class DefaultTenCloudCOSObjectTemplate extends BaseTenCloudCOSObjectTempl
             }
             catch (IOException e)
             {}
-            transferManager.shutdownNow();
+            closeTransferManager();
         }
-        //返回对象url
-        return getObjectUrl(key);
     }
 
     /**
@@ -175,7 +176,7 @@ public class DefaultTenCloudCOSObjectTemplate extends BaseTenCloudCOSObjectTempl
     @Override
     public void downloadFile(String key, String saveFile)
     {
-        CommonUtil.assertObjectNull("key",key);
+        CommonUtil.assertObjectNull(key,"key can not be null.");
         COSUtil.checkVirtualFile(saveFile);
         try
         {
@@ -185,11 +186,11 @@ public class DefaultTenCloudCOSObjectTemplate extends BaseTenCloudCOSObjectTempl
         }
         catch (Exception e)
         {
-            logger.error("error during cos client download file : ".concat(e.getMessage()));
+            LOGGER.error("an error occurred while cos download file : {}", e.getMessage());
         }
         finally
         {
-            transferManager.shutdownNow();
+            closeTransferManager();
         }
     }
 
@@ -211,17 +212,17 @@ public class DefaultTenCloudCOSObjectTemplate extends BaseTenCloudCOSObjectTempl
             for (String key : keys)
             {
                 getObjectRequest.setKey(key);
-                Download download = transferManager.download(getObjectRequest,new File(saveDir.endsWith("/") ? saveDir.concat(key) : saveDir.concat("/").concat(key)));
+                Download download = transferManager.download(getObjectRequest,new File(saveDir.endsWith("/") ? saveDir + key : saveDir + ("/") + key));
                 download.waitForCompletion();
             }
         }
         catch (Exception e)
         {
-            logger.error("error during cos client download file : ".concat(e.getMessage()));
+            LOGGER.error("an error occurred while cos download file : {}" , e.getMessage());
         }
         finally
         {
-            transferManager.shutdownNow();
+            closeTransferManager();
         }
     }
 
@@ -238,19 +239,24 @@ public class DefaultTenCloudCOSObjectTemplate extends BaseTenCloudCOSObjectTempl
     public String copyObject(String sourceKey, String targetRegion, String targetBucketName, String targetKey)
     {
         CommonUtil.assertObjectsNull(sourceKey,targetRegion,targetBucketName,targetKey);
+        TransferManager copyTransferManager = null;
         try
         {
-            TransferManager copyTransferManager = newCopyTransferManager(targetRegion);
+            copyTransferManager = newCopyTransferManager(targetRegion);
             Copy copy = copyTransferManager.copy(newCopyObjectRequest(sourceKey,(targetBucketName = getStandardBucketName(targetBucketName)), targetKey),newCopySourceCOSClient(),null);
             copy.waitForCopyResult();
         }
         catch (Exception e)
         {
-            logger.error("error during cos client copy file : ".concat(e.getMessage()));
+            LOGGER.error("an error occurred while cos copy file : {}", e.getMessage());
+            return null;
         }
         finally
         {
-            transferManager.shutdownNow();
+            if(copyTransferManager != null)
+            {
+                copyTransferManager.shutdownNow();
+            }
         }
         return COSUtil.getTencloudObjectUrl(targetBucketName,targetRegion,targetKey);
     }

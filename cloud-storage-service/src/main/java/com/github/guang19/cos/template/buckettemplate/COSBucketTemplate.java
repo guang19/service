@@ -16,7 +16,6 @@ import java.util.Map;
 public interface COSBucketTemplate
 {
 
-
     /**
      *
      * <p>获取当前地域下的所有存储桶</p>
@@ -36,11 +35,11 @@ public interface COSBucketTemplate
      *<p>获取存储桶的访问权限控制列表</p>
      * @param bucketName    存储桶名
      * @return              访问权限控制列表
-     *                       <code>
-     *                           Map:
-     *                           owner: xxx
-     *                           grants:xxx
-     *                       </code>
+     * <code>
+     *     Map:
+     *     owner: xxx
+     *     grants:xxx
+     * </code>
      */
     public Map<String,Object> getBucketAccessControllerList(String bucketName);
 

@@ -14,8 +14,8 @@ public interface COSClientConfigurationParser
 {
     /**
      * <p>解析COS客户端配置</p>
-     * @param config       配置文件
+     * @param configuration       配置文件
      * @return             COS客户端配置
      */
-    public abstract COSClientConfiguration parse(String config);
+    public abstract COSClientConfiguration parse(String configuration);
 }

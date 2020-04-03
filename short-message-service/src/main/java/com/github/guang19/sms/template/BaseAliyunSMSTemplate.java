@@ -9,14 +9,10 @@ import com.github.guang19.sms.dto.ParamDTO;
 import com.github.guang19.sms.dto.ResponseDTO;
 import com.github.guang19.sms.util.SMSAction;
 import com.github.guang19.sms.util.SMSUtil;
-import com.github.guang19.util.CommonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import static com.github.guang19.sms.util.SMSAction.*;
 
 /**
@@ -29,26 +25,20 @@ public abstract class BaseAliyunSMSTemplate implements AliyunSMSTemplate
     //阿里云短信服务客户端
     private final IAcsClient acsClient;
 
-    //存储公用request
-    private final Map<SMSAction, CommonRequest> requestMap = new ConcurrentHashMap<>();
+    //阿里云短信服务配置属性
+    private final AliyunSMSProfileProperties aliyunSMSProfileProperties;
 
-    //查询发送短信明细的page size
-    private long queryPageSize;
-
-    //logger
-    protected static final Logger logger = LoggerFactory.getLogger(BaseAliyunSMSTemplate.class);
+    //LOGGER
+    protected static final Logger LOGGER = LoggerFactory.getLogger(BaseAliyunSMSTemplate.class);
 
     /**
      * 阿里云sms配置属性构造
-     * @param smsProfileProperties  阿里云短信服务配置属性
+     * @param aliyunSMSProfileProperties  阿里云短信服务配置属性
      */
-    protected BaseAliyunSMSTemplate(AliyunSMSProfileProperties smsProfileProperties)
+    protected BaseAliyunSMSTemplate(AliyunSMSProfileProperties aliyunSMSProfileProperties)
     {
-        this.acsClient = new DefaultAcsClient(smsProfileProperties.getDefaultProfile());
-        this.queryPageSize = smsProfileProperties.getQueryPageSize();
-        this.requestMap.put(NORMAL,SMSUtil.newAliyunSMSRequest(NORMAL,smsProfileProperties));
-        this.requestMap.put(BATCH,SMSUtil.newAliyunSMSRequest(BATCH,smsProfileProperties));
-        this.requestMap.put(QUERY,SMSUtil.newAliyunSMSRequest(QUERY,smsProfileProperties));
+        this.acsClient = new DefaultAcsClient(aliyunSMSProfileProperties.getDefaultProfile());
+        this.aliyunSMSProfileProperties = aliyunSMSProfileProperties;
     }
 
     /**
@@ -63,7 +53,7 @@ public abstract class BaseAliyunSMSTemplate implements AliyunSMSTemplate
     @Override
     public ResponseDTO sendMessage(String phoneNumber, ParamDTO param)
     {
-        throw new UnsupportedOperationException("can not send message with base template");
+        throw new UnsupportedOperationException("can not send message with base template.");
     }
 
     /**
@@ -80,7 +70,7 @@ public abstract class BaseAliyunSMSTemplate implements AliyunSMSTemplate
     @Override
     public ResponseDTO sendMessage(String[] phoneNumbers, ParamDTO param)
     {
-        throw new UnsupportedOperationException("can not send message with base template");
+        throw new UnsupportedOperationException("can not send message with base template.");
     }
 
     /**
@@ -96,9 +86,9 @@ public abstract class BaseAliyunSMSTemplate implements AliyunSMSTemplate
      * @return 如果发送成功, 则返回发送成功的响应体 : {@link ResponseDTO}
      */
     @Override
-    public ResponseDTO sendBatchMessage(String[] phoneNumbers, ParamDTO[] params)
+    public ResponseDTO batchSendMessage(String[] phoneNumbers, ParamDTO[] params)
     {
-        throw new UnsupportedOperationException("can not send message with base template");
+        throw new UnsupportedOperationException("can not send message with base template.");
     }
 
     /**
@@ -106,7 +96,7 @@ public abstract class BaseAliyunSMSTemplate implements AliyunSMSTemplate
      *
      * @param phoneNumber 手机号
      * @param sendDate    发送时间.比如查询今天发送的 LocalDate.now(Clock.systemDefaultZone())
-     * @param currentPage 当前页码.当前页显示的数量参见 sm.service.query-page-size 参数
+     * @param currentPage 当前页码.当前页显示的数量参见 sms.query-page-size 参数
      * @return 短信的明细. {@link ResponseDTO}
      */
     @Override
@@ -120,7 +110,7 @@ public abstract class BaseAliyunSMSTemplate implements AliyunSMSTemplate
      *
      * @param phoneNumber 手机号
      * @param sendDate    发送时间.比如查询今天发送的 LocalDate.now(Clock.systemDefaultZone())
-     * @param currentPage 当前页码.当前页显示的数量参见 sm.service.query-page-size 参数
+     * @param currentPage 当前页码.当前页显示的数量参见 sms.query-page-size 参数
      * @param bizId       发送的回执ID
      * @return 短信的明细. {@link ResponseDTO}
      */
@@ -130,44 +120,6 @@ public abstract class BaseAliyunSMSTemplate implements AliyunSMSTemplate
         return queryMessageDetails(phoneNumber,sendDate,currentPage,bizId);
     }
 
-    /**
-     * <p>设置短信模板</p>
-     * @param messageTemplate 短信模板
-     */
-    public final synchronized void setMessageTemplate(String messageTemplate)
-    {
-        CommonUtil.assertObjectNull("message template",messageTemplate);
-        for (Map.Entry<SMSAction, CommonRequest> entry : this.requestMap.entrySet())
-        {
-            entry.getValue().putQueryParameter("TemplateCode", messageTemplate);
-        }
-    }
-
-
-    /**
-     * 获取查询 page size
-     * @return      page size
-     */
-    public long getQueryPageSize()
-    {
-        return queryPageSize;
-    }
-
-    /**
-     * 设置查询时的page size
-     * @param queryPageSize page size
-     */
-    public void setQueryPageSize(long queryPageSize)
-    {
-        this.queryPageSize = queryPageSize;
-    }
-
-
-    //获取SMS请求
-    protected final CommonRequest getSMSRequest(SMSAction action)
-    {
-        return requestMap.get(action);
-    }
 
     /**
      * <p>查询短信明细</p>
@@ -179,14 +131,50 @@ public abstract class BaseAliyunSMSTemplate implements AliyunSMSTemplate
      */
     private  ResponseDTO queryMessageDetails(String phoneNumber, LocalDate sendDate, long currentPage, String bizId)
     {
-        CommonRequest request = getSMSRequest(QUERY);
-        request.putQueryParameter("PageSize",String.valueOf(queryPageSize));
+        CommonRequest request = newAliyunSMSRequest(QUERY);
+        request.putQueryParameter("PageSize",String.valueOf(aliyunSMSProfileProperties.getQueryPageSize()));
         request.putQueryParameter("CurrentPage",String.valueOf(currentPage));
         request.putQueryParameter("PhoneNumber",phoneNumber);
         request.putQueryParameter("SendDate",sendDate.toString().replaceAll("-",""));
         request.putQueryParameter("BizId",bizId);
         return smsRequest(request);
     }
+
+
+    /**
+     * <p>设置短信模板</p>
+     * @param template 短信模板
+     */
+    public void setTemplate(String template)
+    {
+        aliyunSMSProfileProperties.setTemplate(template);
+    }
+
+
+    /**
+     * 获取查询 page size
+     * @return      page size
+     */
+    public long getQueryPageSize()
+    {
+        return aliyunSMSProfileProperties.getQueryPageSize();
+    }
+
+    /**
+     * 设置查询时的page size
+     * @param queryPageSize page size
+     */
+    public void setQueryPageSize(long queryPageSize)
+    {
+        this.aliyunSMSProfileProperties.setQueryPageSize(queryPageSize);
+    }
+
+    //创建新请求
+    protected final CommonRequest newAliyunSMSRequest(SMSAction smsAction)
+    {
+        return SMSUtil.newAliyunSMSRequest(smsAction,aliyunSMSProfileProperties);
+    }
+
 
     /**
      * <p>发送短信服务请求</p>
@@ -200,14 +188,14 @@ public abstract class BaseAliyunSMSTemplate implements AliyunSMSTemplate
             ResponseDTO response =  SMSUtil.parseAliyunSMSResponseBizId(acsClient.getCommonResponse(request));
             if(!response.getCode().equals("OK"))
             {
-                logger.error("current message : ".concat(response.getRequestId().concat(" sending error due to : ".concat(response.getCode()))));
+                LOGGER.error("current message {} sending error due to {}",response.getRequestId() ,response.getCode());
             }
             return response;
         }
         catch (ClientException e)
         {
-            logger.error("error during request short message service : " + e.getMessage());
+            LOGGER.error("error during request short message service : {}", e.getMessage());
+            return null;
         }
-        return null;
     }
 }

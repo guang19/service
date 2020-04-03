@@ -1,10 +1,8 @@
-package com.github.guang19.cos.template.buckettemplate;
+package com.github.guang19.cos.template.buckettemplate.impl;
 
-import com.aliyun.oss.OSSException;
 import com.aliyun.oss.model.*;
 import com.github.guang19.cos.config.AliyunOSSClientProperties;
-import com.github.guang19.cos.util.COSUtil;
-import com.github.guang19.util.CommonUtil;
+import com.github.guang19.cos.template.buckettemplate.BaseAliyunOSSBucketTemplate;
 
 /**
  * @author yangguang
@@ -24,7 +22,7 @@ public class DefaultAliyunOSSBucketTemplate extends BaseAliyunOSSBucketTemplate
     }
 
     /**
-     * <p>创建私有读写的存储桶,默认为标准存储桶,本地冗余</p>
+     * <p>创建私有读写的存储桶:标准存储,本地冗余</p>
      *
      * @param bucketName 存储桶名(3 - 63个字符)
      * @return 存储桶
@@ -201,42 +199,5 @@ public class DefaultAliyunOSSBucketTemplate extends BaseAliyunOSSBucketTemplate
     public Bucket createPublicReadArchiveBucket(String bucketName)
     {
         return createBucket(bucketName,StorageClass.Archive,null,CannedAccessControlList.PublicRead);
-    }
-
-    /**
-     * <p>构造存储桶的核心方法</p>
-     * @param bucketName                存储桶类型
-     * @param storageClass              存储桶存储类型
-     * @param redundancyType            冗余类型
-     * @param accessControlList         访问权限问题
-     * @return                          创建的存储桶
-     */
-    private Bucket createBucket(String bucketName, StorageClass storageClass , DataRedundancyType redundancyType, CannedAccessControlList accessControlList)
-    {
-        CommonUtil.assertObjectNull("bucketName",bucketName);
-        CreateBucketRequest createBucketRequest = new CreateBucketRequest(bucketName);
-        //设置存储类型
-        createBucketRequest.setStorageClass(storageClass);
-        if(redundancyType != null)
-        {
-            //设置冗余类型
-            createBucketRequest.setDataRedundancyType(redundancyType);
-        }
-        //设置访问权限
-        createBucketRequest.setCannedACL(accessControlList);
-        Bucket bucket = null;
-        try
-        {
-            bucket = ossClient.createBucket(createBucketRequest);
-        }
-        catch (OSSException e)
-        {
-            log.error("error during create bucket : " .concat(COSUtil.parseAliyunErrorMessage(e)));
-        }
-        finally
-        {
-            close();
-        }
-        return bucket;
     }
 }

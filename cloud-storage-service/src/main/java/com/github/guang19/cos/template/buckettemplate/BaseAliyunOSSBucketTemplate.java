@@ -3,8 +3,7 @@ package com.github.guang19.cos.template.buckettemplate;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
 import com.aliyun.oss.OSSException;
-import com.aliyun.oss.model.AccessControlList;
-import com.aliyun.oss.model.Bucket;
+import com.aliyun.oss.model.*;
 import com.github.guang19.cos.util.COSUtil;
 import com.github.guang19.cos.config.AliyunOSSClientProperties;
 import com.github.guang19.util.CommonUtil;
@@ -26,8 +25,8 @@ public abstract class BaseAliyunOSSBucketTemplate implements AliyunOSSBucketTemp
     //阿里云oss客户端
     protected final OSS ossClient;
 
-    //logger
-    protected static final Logger log = LoggerFactory.getLogger(BaseAliyunOSSBucketTemplate.class);
+    //LOGGER
+    protected static final Logger LOGGER = LoggerFactory.getLogger(BaseAliyunOSSBucketTemplate.class);
 
     /**
      * 阿里云OSS客户端属性构造
@@ -49,7 +48,7 @@ public abstract class BaseAliyunOSSBucketTemplate implements AliyunOSSBucketTemp
     @Override
     public Bucket createPrivateStandardLRSBucket(String bucketName)
     {
-        throw new UnsupportedOperationException("can not create bucket with base template");
+        throw new UnsupportedOperationException("can not create bucket with base template.");
     }
 
     /**
@@ -61,7 +60,7 @@ public abstract class BaseAliyunOSSBucketTemplate implements AliyunOSSBucketTemp
     @Override
     public Bucket createPrivateStandardZRSBucket(String bucketName)
     {
-        throw new UnsupportedOperationException("can not create bucket with base template");
+        throw new UnsupportedOperationException("can not create bucket with base template.");
     }
 
     /**
@@ -73,7 +72,7 @@ public abstract class BaseAliyunOSSBucketTemplate implements AliyunOSSBucketTemp
     @Override
     public Bucket createPrivateIALRSBucket(String bucketName)
     {
-        throw new UnsupportedOperationException("can not create bucket with base template");
+        throw new UnsupportedOperationException("can not create bucket with base template.");
     }
 
     /**
@@ -85,7 +84,7 @@ public abstract class BaseAliyunOSSBucketTemplate implements AliyunOSSBucketTemp
     @Override
     public Bucket createPrivateIAZRSBucket(String bucketName)
     {
-        throw new UnsupportedOperationException("can not create bucket with base template");
+        throw new UnsupportedOperationException("can not create bucket with base template.");
     }
 
     /**
@@ -97,7 +96,7 @@ public abstract class BaseAliyunOSSBucketTemplate implements AliyunOSSBucketTemp
     @Override
     public Bucket createPrivateArchiveBucket(String bucketName)
     {
-        throw new UnsupportedOperationException("can not create bucket with base template");
+        throw new UnsupportedOperationException("can not create bucket with base template.");
     }
 
     /**
@@ -109,7 +108,7 @@ public abstract class BaseAliyunOSSBucketTemplate implements AliyunOSSBucketTemp
     @Override
     public Bucket createPublicStandardLRSBucket(String bucketName)
     {
-        throw new UnsupportedOperationException("can not create bucket with base template");
+        throw new UnsupportedOperationException("can not create bucket with base template.");
     }
 
     /**
@@ -121,7 +120,7 @@ public abstract class BaseAliyunOSSBucketTemplate implements AliyunOSSBucketTemp
     @Override
     public Bucket createPublicStandardZRSBucket(String bucketName)
     {
-        throw new UnsupportedOperationException("can not create bucket with base template");
+        throw new UnsupportedOperationException("can not create bucket with base template.");
     }
 
     /**
@@ -133,7 +132,7 @@ public abstract class BaseAliyunOSSBucketTemplate implements AliyunOSSBucketTemp
     @Override
     public Bucket createPublicIALRSBucket(String bucketName)
     {
-        throw new UnsupportedOperationException("can not create bucket with base template");
+        throw new UnsupportedOperationException("can not create bucket with base template.");
     }
 
     /**
@@ -145,7 +144,7 @@ public abstract class BaseAliyunOSSBucketTemplate implements AliyunOSSBucketTemp
     @Override
     public Bucket createPublicIAZRSBucket(String bucketName)
     {
-        throw new UnsupportedOperationException("can not create bucket with base template");
+        throw new UnsupportedOperationException("can not create bucket with base template.");
     }
 
     /**
@@ -157,7 +156,7 @@ public abstract class BaseAliyunOSSBucketTemplate implements AliyunOSSBucketTemp
     @Override
     public Bucket createPublicArchiveBucket(String bucketName)
     {
-        throw new UnsupportedOperationException("can not create bucket with base template");
+        throw new UnsupportedOperationException("can not create bucket with base template.");
     }
 
     /**
@@ -169,7 +168,7 @@ public abstract class BaseAliyunOSSBucketTemplate implements AliyunOSSBucketTemp
     @Override
     public Bucket createPublicReadStandardLRSBucket(String bucketName)
     {
-        throw new UnsupportedOperationException("can not create bucket with base template");
+        throw new UnsupportedOperationException("can not create bucket with base template.");
     }
 
     /**
@@ -181,7 +180,7 @@ public abstract class BaseAliyunOSSBucketTemplate implements AliyunOSSBucketTemp
     @Override
     public Bucket createPublicReadStandardZRSBucket(String bucketName)
     {
-        throw new UnsupportedOperationException("can not create bucket with base template");
+        throw new UnsupportedOperationException("can not create bucket with base template.");
     }
 
     /**
@@ -193,7 +192,7 @@ public abstract class BaseAliyunOSSBucketTemplate implements AliyunOSSBucketTemp
     @Override
     public Bucket createPublicReadIALRSBucket(String bucketName)
     {
-        throw new UnsupportedOperationException("can not create bucket with base template");
+        throw new UnsupportedOperationException("can not create bucket with base template.");
     }
 
     /**
@@ -205,7 +204,7 @@ public abstract class BaseAliyunOSSBucketTemplate implements AliyunOSSBucketTemp
     @Override
     public Bucket createPublicReadIAZRSBucket(String bucketName)
     {
-        throw new UnsupportedOperationException("can not create bucket with base template");
+        throw new UnsupportedOperationException("can not create bucket with base template.");
     }
 
     /**
@@ -217,7 +216,7 @@ public abstract class BaseAliyunOSSBucketTemplate implements AliyunOSSBucketTemp
     @Override
     public Bucket createPublicReadArchiveBucket(String bucketName)
     {
-        throw new UnsupportedOperationException("can not create bucket with base template");
+        throw new UnsupportedOperationException("can not create bucket with base template.");
     }
 
     /**
@@ -228,9 +227,14 @@ public abstract class BaseAliyunOSSBucketTemplate implements AliyunOSSBucketTemp
     @Override
     public List<String> getAllBuckets()
     {
-        List<String> buckets = ossClient.listBuckets().stream().map(Bucket::toString).collect(Collectors.toList());
-        close();
-        return buckets;
+        try
+        {
+            return ossClient.listBuckets().stream().map(Bucket::toString).collect(Collectors.toList());
+        }
+        finally
+        {
+            close();
+        }
     }
 
     /**
@@ -242,21 +246,20 @@ public abstract class BaseAliyunOSSBucketTemplate implements AliyunOSSBucketTemp
     @Override
     public String getBucketLocation(String bucketName)
     {
-        CommonUtil.assertObjectNull("bucketName",bucketName);
-        String location = null;
+        CommonUtil.assertObjectNull(bucketName,"bucket name can not be null.");
         try
         {
-            location =  ossClient.getBucketLocation(bucketName);
+            return  ossClient.getBucketLocation(bucketName);
         }
         catch (OSSException e)
         {
-            log.error("error during get bucket location".concat(COSUtil.parseAliyunErrorMessage(e)));
+            LOGGER.error("an error occurred while cos get bucket location : {}" ,COSUtil.parseAliyunErrorMessage(e));
+            return null;
         }
         finally
         {
             close();
         }
-        return location;
     }
 
     /**
@@ -273,42 +276,65 @@ public abstract class BaseAliyunOSSBucketTemplate implements AliyunOSSBucketTemp
     @Override
     public Map<String, Object> getBucketAccessControllerList(String bucketName)
     {
-        CommonUtil.assertObjectNull("bucketName",bucketName);
-        Map<String,Object> map = null;
+        CommonUtil.assertObjectNull(bucketName,"bucket name can not be null.");
+        AccessControlList accessControlList = null;
         try
         {
-            AccessControlList accessControlList = ossClient.getBucketAcl(bucketName);
-            map = new HashMap<>();
-            getBucketAccessControllerList(map,accessControlList);
+            accessControlList = ossClient.getBucketAcl(bucketName);
         }
         catch (OSSException e)
         {
-            log.error("error during get bucket access controller list : ".concat(COSUtil.parseAliyunErrorMessage(e)));
+            LOGGER.error("an error occurred while cos get bucket access controller list : {}" ,COSUtil.parseAliyunErrorMessage(e));
         }
         finally
         {
             close();
         }
-        return map;
+        return putBucketAccessControllerListMap(accessControlList);
     }
 
     //获取存储桶权限
-    private void getBucketAccessControllerList(Map<String,Object> map,AccessControlList accessControlList)
+    private Map<String,Object> putBucketAccessControllerListMap(AccessControlList accessControlList)
     {
+        Map<String,Object> bucketAccessControllerListMap = new HashMap<>();
         if(accessControlList != null)
         {
-            map.put("owner",accessControlList.getOwner());
-            map.put("grants",accessControlList.getGrants());
+            bucketAccessControllerListMap.put("owner",accessControlList.getOwner());
+            bucketAccessControllerListMap.put("grants",accessControlList.getGrants());
         }
         else
         {
-            map.put("owner",null);
-            map.put("grants",null);
+            bucketAccessControllerListMap.put("owner",null);
+            bucketAccessControllerListMap.put("grants",null);
         }
+        return bucketAccessControllerListMap;
     }
 
     /**
-     * <p>判断存储桶是否存在</p>
+     * <p>
+     *     判断存储桶是否存在
+     *     阿里云的这个API有问题，在我测试的时候，无论什么是否存在，
+     *     都返回true。
+     *     我的测试结果如下:
+     *     ```
+     *     true  //无论什么结果都返回true
+     *     警告: [Server]Unable to execute HTTP request: 返回结果无效，无法解析。
+     *     [ErrorCode]: InvalidResponse
+     *     [RequestId]: 5E85DE19A920FB3932139567
+     *     [HostId]: null
+     *     [ResponseError]:
+     *     <?xml version="1.0" encoding="UTF-8"?>
+     *     <Error>
+     *       <Code>NoSuchBucket</Code>
+     *       <Message>The specified bucket does not exist.</Message>
+     *       <RequestId>5E85DE19A920FB3932139567</RequestId>
+     *       <HostId>lyciab.oss-cn-shanghai.aliyuncs.com</HostId>
+     *       <BucketName>lyciab</BucketName>
+     *     </Error>
+     * Process finished with exit code 0
+     *
+     *     ```
+     * </p>
      *
      * @param bucketName 存储桶名
      * @return          存储桶是否存在
@@ -316,7 +342,7 @@ public abstract class BaseAliyunOSSBucketTemplate implements AliyunOSSBucketTemp
     @Override
     public boolean existBucket(String bucketName)
     {
-        throw new UnsupportedOperationException("aliyun oss service does not support judge exist bucket");
+        throw new UnsupportedOperationException("aliyun oss service does not support judge bucket exist.");
     }
 
     /**
@@ -327,14 +353,14 @@ public abstract class BaseAliyunOSSBucketTemplate implements AliyunOSSBucketTemp
     @Override
     public void deleteBucket(String bucketName)
     {
-        CommonUtil.assertObjectNull("bucketName",bucketName);
+        CommonUtil.assertObjectNull(bucketName,"bucket name can not be null.");
         try
         {
             ossClient.deleteBucket(bucketName);
         }
         catch (OSSException e)
         {
-            log.error("error during delete bucket : ".concat(COSUtil.parseAliyunErrorMessage(e)));
+            LOGGER.error("an error occurred while cos delete bucket : {}" ,COSUtil.parseAliyunErrorMessage(e));
         }
         finally
         {
@@ -350,4 +376,43 @@ public abstract class BaseAliyunOSSBucketTemplate implements AliyunOSSBucketTemp
     {
         ossClient.shutdown();
     }
+
+
+    /**
+     * <p>构造存储桶的核心方法</p>
+     * @param bucketName                存储桶类型
+     * @param storageClass              存储桶存储类型
+     * @param redundancyType            冗余类型
+     * @param accessControlList         访问权限问题
+     * @return                          创建的存储桶
+     */
+    protected final Bucket createBucket(String bucketName, StorageClass storageClass , DataRedundancyType redundancyType, CannedAccessControlList accessControlList)
+    {
+        CommonUtil.assertObjectNull(bucketName,"bucket name can not be null.");
+        CreateBucketRequest createBucketRequest = new CreateBucketRequest(bucketName);
+        //设置存储类型
+        createBucketRequest.setStorageClass(storageClass);
+        if(redundancyType != null)
+        {
+            //设置冗余类型
+            createBucketRequest.setDataRedundancyType(redundancyType);
+        }
+        //设置访问权限
+        createBucketRequest.setCannedACL(accessControlList);
+        Bucket bucket = null;
+        try
+        {
+            bucket = ossClient.createBucket(createBucketRequest);
+        }
+        catch (OSSException e)
+        {
+            LOGGER.error("an error occurred while cos create bucket : {}" , COSUtil.parseAliyunErrorMessage(e));
+        }
+        finally
+        {
+            close();
+        }
+        return bucket;
+    }
+
 }

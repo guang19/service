@@ -27,7 +27,7 @@ public class AliyunSMSProfileProperties extends SMSProfileProperties
      * @param secretId      secret id
      * @param secretKey     secret key
      * @param region        地域
-     * @param signNames      短信签名
+     * @param signNames     短信签名
      */
     public AliyunSMSProfileProperties(String secretId,String secretKey,String region, String[] signNames)
     {

@@ -3,7 +3,6 @@ package com.github.guang19.sms.dto;
 import lombok.*;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * @author yangguang

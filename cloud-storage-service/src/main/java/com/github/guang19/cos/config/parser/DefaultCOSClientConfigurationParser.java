@@ -5,8 +5,8 @@ import com.github.guang19.cos.config.COSClientConfiguration;
 import com.github.guang19.cos.config.COSClientProperties;
 import com.github.guang19.cos.config.TenCloudCOSClientProperties;
 import com.github.guang19.cos.config.AliyunOSSClientProperties;
-import com.github.guang19.cos.config.exception.COSClientConfigurationException;
-import com.github.guang19.cos.config.exception.ParseCOSClientConfigurationException;
+import com.github.guang19.cos.config.exceptions.COSClientConfigurationException;
+import com.github.guang19.cos.config.exceptions.ParseCOSClientConfigurationException;
 import com.github.guang19.exception.UnknownServiceTypeException;
 
 import java.io.IOException;
@@ -25,36 +25,36 @@ public class DefaultCOSClientConfigurationParser implements COSClientConfigurati
     /**
      * <p>解析COS客户端配置</p>
      *
-     * @param config 配置文件
+     * @param configuration 配置文件
      * @return       COS客户端配置
      */
     @Override
-    public COSClientConfiguration parse(String config)
+    public COSClientConfiguration parse(String configuration)
     {
-        return this.parseCOSClientConfiguration(config);
+        return this.parseCOSClientConfiguration(configuration);
     }
 
 
 
     /**
      * <p>解析基础配置</p>
-     * @param config 配置文件
+     * @param configuration 配置文件
      */
-    private synchronized COSClientConfiguration parseCOSClientConfiguration(String config)
+    private COSClientConfiguration parseCOSClientConfiguration(String configuration)
     {
-        if(config == null)
+        if(configuration == null)
         {
-            throw new NullPointerException("cos client configuration can not be null");
+            throw new NullPointerException("cos client configuration can not be null.");
         }
         Properties properties = new Properties();
-        try (InputStreamReader reader = new InputStreamReader(this.getClass().getClassLoader().getResourceAsStream(config), StandardCharsets.UTF_8))
+        try (InputStreamReader reader = new InputStreamReader(ClassLoader.getSystemResourceAsStream(configuration), StandardCharsets.UTF_8))
         {
             properties.load(reader);
             return new COSClientConfiguration(parseCOSClientProperties(properties));
         }
         catch (IOException | NullPointerException | COSClientConfigurationException e)
         {
-            throw new ParseCOSClientConfigurationException("error during parse cos client configuration : ".concat(e.getMessage()));
+            throw new ParseCOSClientConfigurationException("an error occurred while parse cos client configuration." ,e);
         }
     }
 
@@ -68,14 +68,14 @@ public class DefaultCOSClientConfigurationParser implements COSClientConfigurati
         if (properties.getProperty("cos.service.secret-id") == null ||
                 properties.getProperty("cos.service.secret-key") == null)
         {
-            throw new COSClientConfigurationException("property of secret can not be missing");
+            throw new COSClientConfigurationException("property of secret can not be missing.");
         }
 
         //判断COS服务类型
         String  cosServiceType = properties.getProperty("cos.service.type");
         if(cosServiceType == null)
         {
-            throw new COSClientConfigurationException("cos service type can not be null or can not identify cos service type");
+            throw new COSClientConfigurationException("cos service type can not be null or can not identify cos service type.");
         }
         COSClientProperties cosClientProperties = null;
         //构造腾讯云COS客户端配置属性
@@ -84,12 +84,12 @@ public class DefaultCOSClientConfigurationParser implements COSClientConfigurati
             //判断region地域属性
             if(properties.getProperty("cos.service.region") == null)
             {
-                throw new COSClientConfigurationException("property of region can not be missing");
+                throw new COSClientConfigurationException("property of region can not be missing.");
             }
             //判断 app id
             if(properties.getProperty("cos.service.app-id") == null)
             {
-                throw new COSClientConfigurationException("property of app id can not be missing");
+                throw new COSClientConfigurationException("property of app id can not be missing.");
             }
             //创建COS客户端属性
             cosClientProperties =
@@ -103,7 +103,7 @@ public class DefaultCOSClientConfigurationParser implements COSClientConfigurati
         {
             if(properties.getProperty("cos.service.endpoint") == null && properties.getProperty("cos.service.cname") == null)
             {
-                throw new COSClientConfigurationException("properties of endpoint and cname must be configured at least one");
+                throw new COSClientConfigurationException("properties of endpoint and cname must be configured at least one.");
             }
             cosClientProperties = new AliyunOSSClientProperties(properties.getProperty("cos.service.secret-id"),
                                                                 properties.getProperty("cos.service.secret-key"),
@@ -113,7 +113,7 @@ public class DefaultCOSClientConfigurationParser implements COSClientConfigurati
         }
         else
         {
-            throw new UnknownServiceTypeException("can not identify cos service type");
+            throw new UnknownServiceTypeException("can not identify cos service type.");
         }
         //设置其它属性
         try
@@ -130,10 +130,7 @@ public class DefaultCOSClientConfigurationParser implements COSClientConfigurati
             }
             if((property = properties.getProperty("cos.service.protocol")) != null)
             {
-                if(property.equals("https"))
-                {
-                    cosClientProperties.setProtocol(property);
-                }
+                cosClientProperties.setProtocol(property);
             }
             if((property = properties.getProperty("cos.service.socket-timeout")) != null)
             {
@@ -170,7 +167,7 @@ public class DefaultCOSClientConfigurationParser implements COSClientConfigurati
         }
         catch (Exception e)
         {
-            throw new COSClientConfigurationException(e.getMessage());
+            throw new COSClientConfigurationException(e);
         }
         return cosClientProperties;
     }

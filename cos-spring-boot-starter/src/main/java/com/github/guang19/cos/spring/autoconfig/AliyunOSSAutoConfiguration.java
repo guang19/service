@@ -2,9 +2,9 @@ package com.github.guang19.cos.spring.autoconfig;
 
 import com.github.guang19.cos.config.AliyunOSSClientProperties;
 import com.github.guang19.cos.template.buckettemplate.AliyunOSSBucketTemplate;
-import com.github.guang19.cos.template.buckettemplate.DefaultAliyunOSSBucketTemplate;
+import com.github.guang19.cos.template.buckettemplate.impl.DefaultAliyunOSSBucketTemplate;
 import com.github.guang19.cos.template.objecttemplate.AliyunOSSObjectTemplate;
-import com.github.guang19.cos.template.objecttemplate.DefaultAliyunOSSObjectTemplate;
+import com.github.guang19.cos.template.objecttemplate.impl.DefaultAliyunOSSObjectTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;

@@ -7,6 +7,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -22,7 +23,7 @@ public class ParamDTO implements Serializable
     private static final long serialVersionUID = -5118597682444371148L;
 
     //存储桶参数
-    private final Map<String,String> map = new ConcurrentHashMap<>();
+    private final Map<String,String> map = new HashMap<>();
 
     /**
      * 放入参数

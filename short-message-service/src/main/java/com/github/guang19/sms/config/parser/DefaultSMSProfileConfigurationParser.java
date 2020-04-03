@@ -4,8 +4,8 @@ import com.github.guang19.common.ServiceType;
 import com.github.guang19.sms.config.AliyunSMSProfileProperties;
 import com.github.guang19.sms.config.SMSProfileConfiguration;
 import com.github.guang19.sms.config.SMSProfileProperties;
-import com.github.guang19.sms.config.exception.ParseSMSProfileConfigurationException;
-import com.github.guang19.sms.config.exception.SMSProfileConfigurationException;
+import com.github.guang19.sms.config.exceptions.ParseSMSProfileConfigurationException;
+import com.github.guang19.sms.config.exceptions.SMSProfileConfigurationException;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -32,74 +32,74 @@ public class DefaultSMSProfileConfigurationParser implements SMSProfileConfigura
     }
 
     //解析sms短信服务配置的核心方法
-    private synchronized SMSProfileConfiguration parseSMSProfileConfiguration(String config)
+    private SMSProfileConfiguration parseSMSProfileConfiguration(String config)
     {
        if(config == null)
        {
-           throw new NullPointerException("sms configuration can not be null");
+           throw new NullPointerException("sms configuration can not be null.");
        }
         Properties properties = new Properties();
-       try(InputStreamReader reader = new InputStreamReader(this.getClass().getClassLoader().getResourceAsStream(config), StandardCharsets.UTF_8))
+       try(InputStreamReader reader = new InputStreamReader(ClassLoader.getSystemResourceAsStream(config), StandardCharsets.UTF_8))
        {
            properties.load(reader);
            return new SMSProfileConfiguration(parseSMSProfileProperties(properties));
        }
        catch (IOException | NullPointerException e)
        {
-           throw new ParseSMSProfileConfigurationException("error during parse sms profile configuration : " + e.getMessage());
+           throw new ParseSMSProfileConfigurationException("an error occurred while parse sms profile configuration.",e);
        }
     }
 
     //解析sms配置属性
     private SMSProfileProperties parseSMSProfileProperties(Properties properties)
     {
-        if(properties.getProperty("sm.service.secret-id") == null || properties.getProperty("sm.service.secret-key") == null)
+        if(properties.getProperty("sms.secret-id") == null || properties.getProperty("sms.secret-key") == null)
         {
-            throw new SMSProfileConfigurationException("property of secret can not be missing");
+            throw new SMSProfileConfigurationException("property of secret can not be missing.");
         }
-        if(properties.getProperty("sm.service.sign-name") == null)
+        if(properties.getProperty("sms.sign-name") == null)
         {
-            throw new SMSProfileConfigurationException("property of sign name can not be missing");
+            throw new SMSProfileConfigurationException("property of sign name can not be missing.");
         }
 
-        String smsServiceType = properties.getProperty("sm.service.type");
+        String smsServiceType = properties.getProperty("sms.type");
         if(smsServiceType == null)
         {
-            throw new SMSProfileConfigurationException("short message service type can not be null or can not identify short message service type");
+            throw new SMSProfileConfigurationException("short message service type can not be null or can not identify short message service type.");
         }
         SMSProfileProperties smsProfileProperties = null;
         if(smsServiceType.equals(ServiceType.ALIYUN.getServiceTYpe()))
         {
-            if(properties.getProperty("sm.service.region") == null)
+            if(properties.getProperty("sms.region") == null)
             {
-                throw new SMSProfileConfigurationException("property of region can not be missing");
+                throw new SMSProfileConfigurationException("property of region can not be missing.");
             }
 
             smsProfileProperties = new AliyunSMSProfileProperties(
-                    properties.getProperty("sm.service.secret-id"),
-                    properties.getProperty("sm.service.secret-key"),
-                    properties.getProperty("sm.service.region"),
-                    properties.getProperty("sm.service.sign-name").split(","));
+                    properties.getProperty("sms.secret-id"),
+                    properties.getProperty("sms.secret-key"),
+                    properties.getProperty("sms.region"),
+                    properties.getProperty("sms.sign-name").split(","));
         }
         else
         {
-            throw new SMSProfileConfigurationException("can not identify short message service type");
+            throw new SMSProfileConfigurationException("can not identify short message service type.");
         }
         String property = null;
         try
         {
-            if((property = properties.getProperty("sm.service.query-page-size")) != null)
+            if((property = properties.getProperty("sms.query-page-size")) != null)
             {
-                smsProfileProperties.setQueryPageSize(Long.parseLong(properties.getProperty("sm.service.query-page-size")));
+                smsProfileProperties.setQueryPageSize(Long.parseLong(property));
             }
-            if((property = properties.getProperty("sm.service.message-template")) != null)
+            if((property = properties.getProperty("sms.template")) != null)
             {
-                smsProfileProperties.setMessageTemplate(property);
+                smsProfileProperties.setTemplate(property);
             }
         }
         catch (Exception e)
         {
-            throw new SMSProfileConfigurationException(e.getMessage());
+            throw new SMSProfileConfigurationException(e);
         }
 
         return smsProfileProperties;

@@ -1,8 +1,9 @@
-package com.github.guang19.cos.template.objecttemplate;
+package com.github.guang19.cos.template.objecttemplate.impl;
 
 import com.aliyun.oss.OSSException;
 import com.aliyun.oss.model.*;
 import com.github.guang19.cos.config.AliyunOSSClientProperties;
+import com.github.guang19.cos.template.objecttemplate.BaseAliyunOSSObjectTemplate;
 import com.github.guang19.cos.util.COSUtil;
 import com.github.guang19.util.CommonUtil;
 
@@ -10,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -56,18 +56,18 @@ public class DefaultAliyunOSSObjectTemplate extends BaseAliyunOSSObjectTemplate
         COSUtil.checkCOSDir(cosDir);
         Path path = CommonUtil.checkLocalFile(filePath);
         //计算对象的key
-        String key = cosDir.isBlank() ? path.getFileName().toString() : cosDir.concat(path.getFileName().toString());;
+        String key = (cosDir.isEmpty() || cosDir.trim().isEmpty()) ? path.getFileName().toString() : cosDir+path.getFileName().toString();
         try
         {
             return putObjectToOSS(Files.newInputStream(path),key,Files.probeContentType(path));
         }
         catch (OSSException e)
         {
-            logger.error("error during cos client upload object : ".concat(COSUtil.parseAliyunErrorMessage(e)));
+            LOGGER.error("an error occurred while cos upload object : {}" , COSUtil.parseAliyunErrorMessage(e));
         }
         catch (Exception e)
         {
-            logger.error("error during cos client upload object : ".concat(e.getMessage()));
+            LOGGER.error("an error occurred while cos upload object : {}" ,e.getMessage());
         }
         //返回对象url
         return CommonUtil.endWithImgType(filePath) ? getImgObjectUrl(key) : getObjectUrl(key);
@@ -101,7 +101,7 @@ public class DefaultAliyunOSSObjectTemplate extends BaseAliyunOSSObjectTemplate
         COSUtil.checkCOSDir(cosDir);
         COSUtil.checkObjectName(objectName);
         //计算对象的key
-        String key = cosDir.isBlank() ? objectName : cosDir.concat(objectName);
+        String key = (cosDir.isEmpty() || cosDir.trim().isEmpty()) ? objectName : cosDir + objectName;
         return putObjectToOSS(fileStream,key,null);
     }
 
@@ -130,14 +130,18 @@ public class DefaultAliyunOSSObjectTemplate extends BaseAliyunOSSObjectTemplate
             PutObjectRequest putObjectRequest = new PutObjectRequest(getObjectTemplateBucket(),key,inputStream,objectMetadata);
             //上传
             ossClient.putObject(putObjectRequest);
+            //返回对象url
+            return CommonUtil.endWithImgType(key) ? getImgObjectUrl(key) : getObjectUrl(key);
         }
         catch (OSSException e)
         {
-            throw new OSSException("error during cos client upload object : ".concat(COSUtil.parseAliyunErrorMessage(e)));
+            LOGGER.error("an error occurred while cos upload object : {}",COSUtil.parseAliyunErrorMessage(e));
+            return null;
         }
         catch (Exception e)
         {
-            throw new OSSException("error during cos client upload object : ".concat(e.getMessage()));
+            LOGGER.error("an error occurred while cos upload object : {}", e.getMessage());
+            return null;
         }
         finally
         {
@@ -149,8 +153,6 @@ public class DefaultAliyunOSSObjectTemplate extends BaseAliyunOSSObjectTemplate
             {}
             close();
         }
-        //返回对象url
-        return CommonUtil.endWithImgType(key) ? getImgObjectUrl(key) : getObjectUrl(key);
     }
 
     /**
@@ -175,7 +177,7 @@ public class DefaultAliyunOSSObjectTemplate extends BaseAliyunOSSObjectTemplate
     @Override
     public void downloadFile(String key, String saveFile)
     {
-        CommonUtil.assertObjectNull("key",key);
+        CommonUtil.assertObjectNull(key,"key cannot be null.");
         COSUtil.checkVirtualFile(saveFile);
         try
         {
@@ -191,11 +193,11 @@ public class DefaultAliyunOSSObjectTemplate extends BaseAliyunOSSObjectTemplate
         }
         catch (OSSException e)
         {
-            logger.error("error during  download file : ".concat(COSUtil.parseAliyunErrorMessage(e)));
+            LOGGER.error("an error occurred while oss download file : {}", COSUtil.parseAliyunErrorMessage(e));
         }
         catch (Throwable e)
         {
-            logger.error("error during  download file : ".concat(e.getMessage()));
+            LOGGER.error("an error occurred while oss download file : {}", e.getMessage());
         }
         finally
         {
@@ -220,39 +222,21 @@ public class DefaultAliyunOSSObjectTemplate extends BaseAliyunOSSObjectTemplate
         {
             for (String key : keys)
             {
-                downloadSmallFile(key,saveDir.endsWith("/") ? saveDir.concat(key) : saveDir.concat("/").concat(key));
+                downloadSmallFile(key,saveDir.endsWith("/") ? saveDir+key : saveDir + "/" + key);
             }
         }
         catch (OSSException e)
         {
-            logger.error("error during download file : ".concat(COSUtil.parseAliyunErrorMessage(e)));
+            LOGGER.error("an error occurred while oss download file : {}" ,COSUtil.parseAliyunErrorMessage(e));
         }
         catch (Exception e)
         {
-            logger.error("error during download file : ".concat(e.getMessage()));
+            LOGGER.error("an error occurred while oss download file : {}" , e.getMessage());
         }
         finally
         {
             close();
         }
-    }
-
-    //下载小文件
-    private void downloadSmallFile(String key,String saveFile) throws Exception
-    {
-        ossClient.getObject(new GetObjectRequest(getObjectTemplateBucket(),key),CommonUtil.createFile(saveFile));
-    }
-
-    //下载大文件
-    private void downloadLargeFile(String key,String saveFile) throws Throwable
-    {
-        DownloadFileRequest downloadFileRequest = new DownloadFileRequest(getObjectTemplateBucket(),key);
-        downloadFileRequest.setDownloadFile(saveFile);
-        downloadFileRequest.setPartSize(COSUtil.getLargeObjectPartSize());
-        downloadFileRequest.setTaskNum(5);
-        downloadFileRequest.setEnableCheckpoint(true);
-        downloadFileRequest.setCheckpointFile(saveFile.concat("checkpoint"));
-        ossClient.downloadFile(downloadFileRequest);
     }
 
     /**
@@ -280,59 +264,22 @@ public class DefaultAliyunOSSObjectTemplate extends BaseAliyunOSSObjectTemplate
             {
                 copyLargeObject(contentLength,sourceKey,targetBucketName,targetKey);
             }
+            //因为复制到另一个存储桶肯定不是相同的域名,所以cname为null
+            return COSUtil.getAliyunObjectUrl(targetBucketName,getEndpoint(),null,null,targetKey);
         }
         catch (OSSException e)
         {
-            logger.error("error during copy file : ".concat(COSUtil.parseAliyunErrorMessage(e)));
+            LOGGER.error("an error occurred while oss copy file : {}" ,COSUtil.parseAliyunErrorMessage(e));
+            return null;
         }
         catch (Throwable e)
         {
-            logger.error("error during copy file : ".concat(e.getMessage()));
+            LOGGER.error("an error occurred while oss copy file : {}" ,e.getMessage());
+            return null;
         }
         finally
         {
             close();
         }
-        //因为复制到另一个存储桶肯定不是相同的域名,所以cname为null
-        return COSUtil.getAliyunObjectUrl(targetBucketName,getEndpoint(),null,null,targetKey);
-    }
-
-
-    //拷贝小对象
-    private void copySmallObject(String sourceKey, String targetBucketName, String targetKey)
-    {
-        CopyObjectRequest copyObjectRequest = new CopyObjectRequest(getObjectTemplateBucket(),sourceKey,targetBucketName,targetKey);
-        ossClient.copyObject(copyObjectRequest);
-    }
-
-
-    //拷贝大对象
-    private void copyLargeObject(long contentLength, String sourceKey, String targetBucketName, String targetKey)
-    {
-        //计算分片总数
-        long partSize = COSUtil.getLargeObjectPartSize();
-        int partCount = (int)(contentLength / partSize);
-        if(contentLength % partSize != 0)
-        {
-            ++partCount;
-        }
-        InitiateMultipartUploadRequest multipartUploadRequest = new InitiateMultipartUploadRequest(targetBucketName,targetKey);
-        InitiateMultipartUploadResult multipartUploadResult = ossClient.initiateMultipartUpload(multipartUploadRequest);
-        UploadPartCopyRequest copyRequest = new UploadPartCopyRequest(getObjectTemplateBucket(),sourceKey,targetBucketName,targetKey);
-        copyRequest.setUploadId(multipartUploadResult.getUploadId());
-        List<PartETag> partETags = new LinkedList<>();
-        for(int i = 0 ; i < partCount ; ++i)
-        {
-            //已经拷贝过的大小
-            long alreadyCopy = partSize * i;
-            long size = Math.min(partSize, contentLength - alreadyCopy);
-            copyRequest.setPartSize(size);
-            copyRequest.setBeginIndex(alreadyCopy);
-            copyRequest.setPartNumber(i + 1);
-            UploadPartCopyResult copyResult = ossClient.uploadPartCopy(copyRequest);
-            partETags.add(copyResult.getPartETag());
-        }
-        CompleteMultipartUploadRequest completeMultipartUploadRequest = new CompleteMultipartUploadRequest(targetBucketName,targetKey,multipartUploadResult.getUploadId(),partETags);
-        ossClient.completeMultipartUpload(completeMultipartUploadRequest);
     }
 }

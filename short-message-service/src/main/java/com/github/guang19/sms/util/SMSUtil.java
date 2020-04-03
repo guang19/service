@@ -20,6 +20,7 @@ import java.util.Map;
 @Slf4j
 public class SMSUtil
 {
+    //gson
     private static final Gson gson = new Gson();
 
     /**
@@ -31,7 +32,6 @@ public class SMSUtil
     public static CommonRequest newAliyunSMSRequest(SMSAction action,AliyunSMSProfileProperties smsProfileProperties)
     {
         CommonRequest request = new CommonRequest();
-        //考虑到兼容性,此处使用正常的switch
         switch (action)
         {
             case NORMAL:
@@ -50,8 +50,8 @@ public class SMSUtil
         request.setSysDomain(smsProfileProperties.getDomain());
         request.setSysMethod(MethodType.POST);
         request.setSysRegionId(smsProfileProperties.getRegion());
-        request.putQueryParameter("TemplateCode",smsProfileProperties.getMessageTemplate());
-       return request;
+        request.putQueryParameter("TemplateCode",smsProfileProperties.getTemplate());
+        return request;
     }
 
     /**
@@ -61,7 +61,7 @@ public class SMSUtil
      */
     public static ResponseDTO  parseAliyunSMSResponseBizId(CommonResponse commonResponse)
     {
-        return  gson.fromJson(commonResponse.getData(), ResponseDTO.class);
+        return gson.fromJson(commonResponse.getData(), ResponseDTO.class);
     }
 
     /**

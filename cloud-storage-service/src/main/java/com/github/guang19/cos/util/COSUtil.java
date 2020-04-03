@@ -9,17 +9,17 @@ import com.github.guang19.cos.config.COSClientProperties;
 import com.qcloud.cos.ClientConfig;
 import com.qcloud.cos.http.HttpProtocol;
 import com.qcloud.cos.region.Region;
-import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Document;
 import org.dom4j.io.SAXReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Collection;
+import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -32,7 +32,6 @@ import java.util.concurrent.TimeUnit;
  *                  COS工具类
  *              </p>
  */
-@Slf4j
 public class COSUtil
 {
     //腾讯云对象域名:bucket name , regio , key
@@ -65,6 +64,9 @@ public class COSUtil
     //统一大文件操作的分块大小 part size : 10M
     private static final long LARGE_OBJECT_PART_SIZE = 1024 * 1024 * 10;
 
+    //LOGGER
+    private static final Logger LOGGER = LoggerFactory.getLogger(COSUtil.class);
+
     /**
      *  <p>获取标准的腾讯云存储桶名</p>
      * @param bucketName       存储桶名
@@ -73,7 +75,7 @@ public class COSUtil
      */
     public static String getTencloudStandardBucketName(String bucketName,String appId)
     {
-        return bucketName.concat("-").concat(appId);
+        return bucketName + "-" + appId;
     }
 
     /**
@@ -170,13 +172,13 @@ public class COSUtil
         {
             if(ossException.getRawResponseError() != null)
             {
-                Document document = SAX_READER.read(new ByteArrayInputStream(ossException.getRawResponseError().getBytes("UTF-8")));
+                Document document = SAX_READER.read(new ByteArrayInputStream(ossException.getRawResponseError().getBytes(StandardCharsets.UTF_8)));
                 errorMessage = document.getRootElement().elementText("Message");
             }
         }
         catch (Throwable e)
         {
-            log.error("error during parse aliyun xml response : " + e.getMessage());
+            LOGGER.error("an error occurred while parse aliyun xml response : {}" ,e.getMessage());
         }
         return errorMessage;
     }
@@ -252,16 +254,16 @@ public class COSUtil
     {
         if(objectStream == null)
         {
-            throw new IllegalArgumentException("object stream can not be null");
+            throw new IllegalArgumentException("object stream can not be null.");
         }
         int objectSize = objectStream.available();
         if(objectSize <= 0)
         {
-            throw new IllegalArgumentException("object size is out of range, should be between 1 - " + uploadLimitSize + "m");
+            throw new IllegalArgumentException(String.format("object size is out of range, should be between 1 - %d m.",uploadLimitSize));
         }
         else if ((float)objectSize / 1024 / 1024 > uploadLimitSize)
         {
-            throw new IllegalArgumentException("object size is out of range, should be between 1 - " + uploadLimitSize + "m");
+            throw new IllegalArgumentException(String.format("object size is out of range, should be between 1 - %d m.",uploadLimitSize));
         }
         return objectSize;
     }
@@ -274,27 +276,27 @@ public class COSUtil
     {
         if(cosDir == null)
         {
-            throw new IllegalArgumentException("cos directory cannot be null");
+            throw new IllegalArgumentException("cos directory cannot be null.");
         }
-        if(!cosDir.isBlank() && !cosDir.endsWith("/"))
+        if((!cosDir.isEmpty() || !cosDir.trim().isEmpty()) && !cosDir.endsWith("/"))
         {
-            throw new IllegalArgumentException("cos directory must be a directory");
+            throw new IllegalArgumentException("cos dir can be empty string , or cos directory must be end with '/'.");
         }
     }
 
     /**
-     * <p>判断对象名是否以 分隔符 / 结尾,如果是,那么抛出异常,允许objectName为空串</p>
+     * <p>判断对象名是否以 分隔符 / 结尾,如果是,那么抛出异常,不允许objectName为空串</p>
      * @param objectName 对象名
      */
     public static void checkObjectName(String objectName)
     {
-        if(objectName == null || objectName.isBlank())
+        if(objectName == null || objectName.isEmpty() || objectName.trim().isEmpty())
         {
-            throw new IllegalArgumentException("object name cannot be empty");
+            throw new IllegalArgumentException("object name cannot be empty.");
         }
         if(objectName.endsWith("/"))
         {
-            throw new IllegalArgumentException("object name must be a name meaning it can not end with '/'");
+            throw new IllegalArgumentException("object name must be a name meaning it cannot end with '/'.");
         }
     }
 
@@ -306,11 +308,11 @@ public class COSUtil
     {
         if(virtualFile == null)
         {
-            throw new IllegalArgumentException("file can not be null");
+            throw new IllegalArgumentException("file can not be null.");
         }
-        if(Files.isDirectory(Path.of(virtualFile)))
+        if(Files.isDirectory(Paths.get(virtualFile)))
         {
-            throw new IllegalArgumentException("file must be a file");
+            throw new IllegalArgumentException("file cannot be a directory.");
         }
     }
 

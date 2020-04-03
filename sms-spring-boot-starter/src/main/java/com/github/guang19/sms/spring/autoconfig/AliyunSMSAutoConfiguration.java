@@ -31,12 +31,12 @@ public class AliyunSMSAutoConfiguration
      */
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(prefix = "spring.sm.service",value = "type",havingValue = "aliyun")
+    @ConditionalOnProperty(prefix = "spring.sms",value = "type",havingValue = "aliyun")
     public AliyunSMSProfileProperties smsProfileProperties(@Autowired SMSProperties smsProperties)
     {
-        AliyunSMSProfileProperties aliyunSMSProfileProperties = new AliyunSMSProfileProperties(smsProperties.getSecretId(),smsProperties.getSecretKey()
-        ,smsProperties.getRegion(),smsProperties.getSignNames().split(","));
-        aliyunSMSProfileProperties.setMessageTemplate(smsProperties.getMessageTemplate());
+        AliyunSMSProfileProperties aliyunSMSProfileProperties = new AliyunSMSProfileProperties(smsProperties.getSecretId(),smsProperties.getSecretKey(),
+                smsProperties.getRegion(),smsProperties.getSignNames().split(","));
+        aliyunSMSProfileProperties.setTemplate(smsProperties.getTemplate());
         if(smsProperties.getQueryPageSize() != null)
         {
             aliyunSMSProfileProperties.setQueryPageSize(smsProperties.getQueryPageSize());
@@ -46,7 +46,7 @@ public class AliyunSMSAutoConfiguration
 
     /**
      * <p>
-     *     自动配置 : spring.sm.service.type=aliyun
+     *     自动配置 : spring.sms.type=aliyun
      * </p>
      * @param aliyunSMSProfileProperties        阿里云短信服务配置属性
      * @return                                  阿里云短信服务操作模板
@@ -54,7 +54,7 @@ public class AliyunSMSAutoConfiguration
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnBean(AliyunSMSProfileProperties.class)
-    @ConditionalOnProperty(prefix = "spring.sm.service",value = "type",havingValue = "aliyun")
+    @ConditionalOnProperty(prefix = "spring.sms",value = "type",havingValue = "aliyun")
     public AliyunSMSTemplate aliyunSMSTemplate(@Autowired AliyunSMSProfileProperties aliyunSMSProfileProperties)
     {
         return new DefaultAliyunSMSTemplate(aliyunSMSProfileProperties);

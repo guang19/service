@@ -2,9 +2,9 @@ package com.github.guang19.cos.spring.autoconfig;
 
 
 import com.github.guang19.cos.config.TenCloudCOSClientProperties;
-import com.github.guang19.cos.template.buckettemplate.DefaultTenCloudCOSBucketTemplate;
+import com.github.guang19.cos.template.buckettemplate.impl.DefaultTenCloudCOSBucketTemplate;
 import com.github.guang19.cos.template.buckettemplate.TenCloudCOSBucketTemplate;
-import com.github.guang19.cos.template.objecttemplate.DefaultTenCloudCOSObjectTemplate;
+import com.github.guang19.cos.template.objecttemplate.impl.DefaultTenCloudCOSObjectTemplate;
 import com.github.guang19.cos.template.objecttemplate.TenCloudCOSObjectTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;

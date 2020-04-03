@@ -6,7 +6,7 @@
 
     <groupId>com.github.guang19</groupId>
     <artifactId>service</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 
     <name>service</name>
     <description>common service tools and common develop tools</description>
@@ -57,18 +57,18 @@
     </scm>
 
     <properties>
-        <java.version>11</java.version>
+        <java.version>1.8</java.version>
         <!--项目的子模块版本-->
-        <service-common.version>1.0.2</service-common.version>
-        <cos.version>1.0.2</cos.version>
-        <cos-with-springboot.version>1.0.2</cos-with-springboot.version>
-        <sms.version>1.0.2</sms.version>
-        <sms-with-springboot.version>1.0.2</sms-with-springboot.version>
+        <service-common.version>1.0.3</service-common.version>
+        <cos.version>1.0.3</cos.version>
+        <cos-with-springboot.version>1.0.3</cos-with-springboot.version>
+        <sms.version>1.0.3</sms.version>
+        <sms-with-springboot.version>1.0.3</sms-with-springboot.version>
 
         <!--插件依赖-->
         <maven-compiler.version>3.1</maven-compiler.version>
         <maven-source.version>3.2.1</maven-source.version>
-        <maven-java-doc.version>3.0.1</maven-java-doc.version>
+        <maven-javadoc.version>3.0.1</maven-javadoc.version>
         <maven-gpg.version>1.6</maven-gpg.version>
 
         <!--sdk依赖-->
@@ -107,7 +107,6 @@
                 <artifactId>short-message-service</artifactId>
                 <version>${sms.version}</version>
             </dependency>
-
             <!--sms with spring boot-->
             <dependency>
                 <groupId>com.github.guang19</groupId>
@@ -162,6 +161,13 @@
                 <version>${boot.version}</version>
             </dependency>
 
+            <!--apache common logging-->
+            <dependency>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging</artifactId>
+                <version>${common-loggin.version}</version>
+            </dependency>
+
             <!--java ee xml,我的jdk为11版本,在jdk9,java就已经模块化,把javaee的包移除了，而阿里云oss sdk需要此包,所以需要引入-->
             <dependency>
                 <groupId>javax.xml.bind</groupId>
@@ -175,29 +181,26 @@
                 <artifactId>dom4j</artifactId>
                 <version>${dom4j.version}</version>
             </dependency>
-
-            <!--apache common logging-->
-            <dependency>
-                <groupId>commons-logging</groupId>
-                <artifactId>commons-logging</artifactId>
-                <version>${common-loggin.version}</version>
-            </dependency>
-
-            <!--lombok-->
-            <dependency>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok</artifactId>
-                <version>${lombok.version}</version>
-            </dependency>
-
-            <!--junit4-->
-            <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>${junit.version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <!--全局依赖-->
+    <dependencies>
+        <!--lombok-->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+            <version>${lombok.version}</version>
+        </dependency>
+
+        <!--junit4-->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
@@ -212,12 +215,28 @@
                 </configuration>
             </plugin>
         </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>*.properties</exclude>
+                </excludes>
+            </resource>
+        </resources>
     </build>
 
     <profiles>
         <profile>
             <id>release</id>
             <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources</directory>
+                        <excludes>
+                            <exclude>*.properties</exclude>
+                        </excludes>
+                    </resource>
+                </resources>
                 <plugins>
                     <!--compiler-->
                     <plugin>
@@ -230,7 +249,7 @@
                         </configuration>
                     </plugin>
 
-                    <!--maven resource-->
+                    <!--maven source-->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
@@ -249,7 +268,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>${maven-java-doc.version}</version>
+                        <version>${maven-javadoc.version}</version>
                         <configuration>
                             <failOnError>false</failOnError>
                             <doclint>none</doclint>

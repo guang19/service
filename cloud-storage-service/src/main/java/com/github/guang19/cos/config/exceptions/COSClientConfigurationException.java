@@ -1,18 +1,18 @@
-package com.github.guang19.sms.config.exception;
+package com.github.guang19.cos.config.exceptions;
 
 /**
  * @author yangguang
- * @date 2020/2/9
- * @description <p>解析短信服务配置异常</p>
+ * @date 2020/2/5
+ * @description <p>COS客户端配置异常</p>
  */
-public class ParseSMSProfileConfigurationException extends RuntimeException
+public class COSClientConfigurationException extends RuntimeException
 {
     /**
      * Constructs a new runtime exception with {@code null} as its
      * detail message.  The cause is not initialized, and may subsequently be
      * initialized by a call to {@link #initCause}.
      */
-    public ParseSMSProfileConfigurationException()
+    public COSClientConfigurationException()
     {
         super();
     }
@@ -25,7 +25,7 @@ public class ParseSMSProfileConfigurationException extends RuntimeException
      * @param message the detail message. The detail message is saved for
      *                later retrieval by the {@link #getMessage()} method.
      */
-    public ParseSMSProfileConfigurationException(String message)
+    public COSClientConfigurationException(String message)
     {
         super(message);
     }
@@ -43,8 +43,9 @@ public class ParseSMSProfileConfigurationException extends RuntimeException
      *              unknown.)
      * @since 1.4
      */
-    public ParseSMSProfileConfigurationException(Throwable cause)
+    public COSClientConfigurationException(Throwable cause)
     {
         super(cause);
     }
+
 }

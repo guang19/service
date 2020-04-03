@@ -23,9 +23,9 @@ public interface SMSTemplate
 
     /**
      * <p>
-     *      发送短信,支持一个手机号
-     *      并且在多手机号的情况下较单手机号会有延迟
-     *      此方法与 send batch 方法不同,此方法只会使用一个短信签名
+     *      发送短信,支持多个手机号
+     *      在多手机号的情况下较单手机号会有延迟
+     *      此方法与 batchSendMessage 方法不同,此方法只会使用一个短信签名
      * </p>
      * @param phoneNumbers     手机号,允许一个或多个手机号
      * @param param            参数,关于 ParamDTO ,可以参考: {@link ParamDTO}
@@ -33,8 +33,6 @@ public interface SMSTemplate
      *
      */
     public ResponseDTO sendMessage(String[] phoneNumbers, ParamDTO param);
-
-
 
 
     /**
@@ -49,5 +47,5 @@ public interface SMSTemplate
      * @return                  如果发送成功,则返回发送成功的响应体 : {@link ResponseDTO}
      *
      */
-    public ResponseDTO sendBatchMessage(String[] phoneNumbers, ParamDTO[] params);
+    public ResponseDTO batchSendMessage(String[] phoneNumbers, ParamDTO[] params);
 }

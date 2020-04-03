@@ -1,4 +1,4 @@
-package com.github.guang19.sms.config.exception;
+package com.github.guang19.sms.config.exceptions;
 
 /**
  * @author yangguang

@@ -2,8 +2,6 @@ package com.github.guang19.cos.config;
 
 import lombok.Getter;
 
-;
-
 /**
  * @author yangguang
  * @date 2020/2/3

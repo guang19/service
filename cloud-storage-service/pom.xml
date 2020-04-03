@@ -5,14 +5,13 @@
     <parent>
         <artifactId>service</artifactId>
         <groupId>com.github.guang19</groupId>
-        <version>1.0.2</version>
+        <version>1.0.3</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
 
     <!--cos(cloud storage service)阿里云的oss和腾讯云的cos服务-->
     <artifactId>cloud-storage-service</artifactId>
-    <version>${cos.version}</version>
     <name>cloud-storage-service</name>
 
     <dependencies>
@@ -45,24 +44,10 @@
             <artifactId>dom4j</artifactId>
         </dependency>
 
-        <!--lombok-->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
         <!--apache common logging-->
         <dependency>
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
-        </dependency>
-
-        <!--junit4-->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

@@ -5,6 +5,7 @@ import com.github.guang19.cos.util.COSUtil;
 import com.github.guang19.util.CommonUtil;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
+import com.qcloud.cos.auth.COSCredentials;
 import com.qcloud.cos.exception.CosClientException;
 import com.qcloud.cos.model.*;
 import com.qcloud.cos.region.Region;
@@ -27,14 +28,9 @@ import java.util.stream.Collectors;
 
 public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjectTemplate
 {
-    //腾讯云COS客户端属性
-    private final TenCloudCOSClientProperties cosClientProperties;
 
-    //腾讯云cos操作高级接口
-    protected final TransferManager transferManager;
-
-    //cos 客户端
-    private final COSClient cosClient;
+    //appId;
+    private final String appId;
 
     //当前模板地域
     private String region;
@@ -42,11 +38,26 @@ public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjec
     //当前模板存储桶
     private String objectTemplateBucket;
 
+    //当前存储同桶下的对象域名前缀
+    private String domainPrefix;
+
+    //上传对象的大小限制
+    private int uploadLimitSize;
+
+    //客户端凭证
+    private final COSCredentials cosCredentials;
+
+    //cos 客户端
+    private final COSClient cosClient;
+
+    //腾讯云cos操作高级接口
+    protected final TransferManager transferManager;
+
     //存储拷贝对象时使用的TransferManager
     private final Map<String,TransferManager> copyTransferManagerMap = new ConcurrentHashMap<>();
 
-    //logger
-    protected static final Logger logger = LoggerFactory.getLogger(BaseTenCloudCOSObjectTemplate.class);
+    //LOGGER
+    protected static final Logger LOGGER = LoggerFactory.getLogger(BaseTenCloudCOSObjectTemplate.class);
 
     /**
      * 构造腾讯云COS对象操作基础模板
@@ -54,10 +65,13 @@ public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjec
      */
     protected BaseTenCloudCOSObjectTemplate(TenCloudCOSClientProperties cosClientProperties)
     {
-        this.cosClientProperties = cosClientProperties;
+        this.appId = cosClientProperties.getAppId();
         this.region = cosClientProperties.getRegion();
         this.objectTemplateBucket = getStandardBucketName(cosClientProperties.getObjectTemplateBucket());
-        this.cosClient = new COSClient(cosClientProperties.getCosCredentials(), COSUtil.newTenCloudCOSClientConfig(cosClientProperties));
+        this.domainPrefix = COSUtil.getTenCloudObjectUrlPrefix(objectTemplateBucket,region);
+        this.uploadLimitSize = cosClientProperties.getUploadLimitSize();
+        this.cosCredentials = cosClientProperties.getCosCredentials();
+        this.cosClient = new COSClient(cosCredentials, COSUtil.newTenCloudCOSClientConfig(cosClientProperties));
         this.transferManager = new TransferManager(cosClient,COSUtil.newThreadPoolExecutor(cosClientProperties));
         this.copyTransferManagerMap.put(region,transferManager);
     }
@@ -86,14 +100,13 @@ public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjec
     @Override
     public List<String> getAllObjectsWithKeyPrefix(String keyPrefix)
     {
-        CommonUtil.assertObjectNull("key prefix",keyPrefix);
+        CommonUtil.assertObjectNull(keyPrefix,"key prefix can not be null.");
         ListObjectsRequest listObjectsRequest = new ListObjectsRequest();
         listObjectsRequest.setBucketName(objectTemplateBucket);
         listObjectsRequest.setPrefix(keyPrefix);
         listObjectsRequest.setDelimiter("");
         listObjectsRequest.setMaxKeys(1000);
         LinkedList<String> keys = new LinkedList<>();
-        String nextMarker = null;
         ObjectListing objectListing = null;
         try
         {
@@ -101,14 +114,12 @@ public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjec
             {
                 objectListing = cosClient.listObjects(listObjectsRequest);
                 objectListing.getObjectSummaries().forEach(cosObjectSummary -> keys.add(cosObjectSummary.getKey()));
-                nextMarker = objectListing.getNextMarker();
-                listObjectsRequest.setMarker(nextMarker);
+                listObjectsRequest.setMarker(objectListing.getNextMarker());
             }while (objectListing.isTruncated());
-
         }
         catch (CosClientException e)
         {
-            logger.error("error during cos client batch get object : ".concat(e.getMessage()));
+            LOGGER.error("an error occurred while cos batch get object : {}" , e.getMessage());
         }
         finally
         {
@@ -183,37 +194,33 @@ public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjec
     @Override
     public Map<String, Object> getObjectMetaData(String key)
     {
-        CommonUtil.assertObjectNull("key",key);
-        Map<String,Object> metadata = null;
+        CommonUtil.assertObjectNull(key,"key can not be null.");
+        ObjectMetadata objectMetadata = null;
         try
         {
-            ObjectMetadata objectMetadata = cosClient.getObjectMetadata(objectTemplateBucket, key);
-            if(objectMetadata != null)
-            {
-                metadata = objectMetadata.getRawMetadata();
-            }
+            objectMetadata = cosClient.getObjectMetadata(objectTemplateBucket, key);
         }
         catch (CosClientException e)
         {
-            logger.error("error during get object metadata : ".concat(e.getMessage()));
+            LOGGER.error("an error occurred while cos get object metadata : {}" ,e.getMessage());
         }
         finally
         {
             close();
         }
-        return metadata;
+        return objectMetadata == null ? null  : objectMetadata.getRawMetadata();
     }
 
     /**
      * <p>上传文件到存储桶的默认目录</p>
      *
      * @param filePath 本地文件路径
-     * @return 上传成功后, 对象的url
+     * @return 上传成功后, 对象的url，如果上传失败，则返回null
      */
     @Override
     public String uploadFile(String filePath)
     {
-        throw new UnsupportedOperationException("can not upload file with base template");
+        throw new UnsupportedOperationException("can not upload file with base template.");
     }
 
     /**
@@ -221,12 +228,12 @@ public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjec
      *
      * @param cosDir      需要将对象上传到存储桶的哪个目录,必须以 '/' 结尾,允许空串
      * @param filePath 本地文件路径
-     * @return 上传成功后, 对象的url
+     * @return 上传成功后, 对象的url，如果上传失败，则返回null
      */
     @Override
     public String uploadFile(String cosDir, String filePath)
     {
-        throw new UnsupportedOperationException("can not upload file with base template");
+        throw new UnsupportedOperationException("can not upload file with base template.");
     }
 
     /**
@@ -234,12 +241,12 @@ public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjec
      *
      * @param fileStream 对象的输入流
      * @param objectName 指定上传后的对象名,但不需要指定后缀,如: a.jpg, a , b.jpg , b , cat 都行
-     * @return 上传成功后, 对象的url
+     * @return 上传成功后, 对象的url，如果上传失败，则返回null
      */
     @Override
     public String uploadFile(InputStream fileStream, String objectName)
     {
-        throw new UnsupportedOperationException("can not upload file with base template");
+        throw new UnsupportedOperationException("can not upload file with base template.");
     }
 
     /**
@@ -248,12 +255,12 @@ public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjec
      * @param fileStream 对象的输入流
      * @param cosDir        需要将对象上传到存储桶的哪个目录,必须以 '/' 结尾,允许空串
      * @param objectName 对象名,但不需要指定后缀,如: a.jpg, a , b.jpg , b , cat 都行
-     * @return 上传成功后, 对象的url
+     * @return 上传成功后, 对象的url，如果上传失败，则返回null
      */
     @Override
     public String uploadFile(InputStream fileStream, String cosDir, String objectName)
     {
-        throw new UnsupportedOperationException("can not upload file with base template");
+        throw new UnsupportedOperationException("can not upload file with base template.");
     }
 
     /**
@@ -279,7 +286,7 @@ public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjec
     @Override
     public void downloadFile(String key, String saveFile)
     {
-        throw new UnsupportedOperationException("can not download file with base template");
+        throw new UnsupportedOperationException("can not download file with base template.");
     }
 
     /**
@@ -292,7 +299,7 @@ public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjec
     @Override
     public void downloadAllFiles(String saveDir)
     {
-        throw new UnsupportedOperationException("can not download file with base template");
+        throw new UnsupportedOperationException("can not download file with base template.");
     }
 
     /**
@@ -303,14 +310,14 @@ public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjec
     @Override
     public void deleteObjectWithKey(String key)
     {
-       CommonUtil.assertObjectNull("key",key);
+        CommonUtil.assertObjectNull(key,"key can not be null.");
        try
        {
            cosClient.deleteObject(objectTemplateBucket,key);
        }
        catch (CosClientException e)
        {
-           logger.error("error during delete object : ".concat(e.getMessage()));
+           LOGGER.error("an error occurred while cos delete object : {}" ,e.getMessage());
        }
        finally
        {
@@ -327,7 +334,7 @@ public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjec
     @Override
     public void deleteObjectsWithKeys(List<String> keys)
     {
-        CommonUtil.assertListEmpty("keys",keys);
+        CommonUtil.assertCollectionEmpty(keys,"keys cannot be empty.");
         DeleteObjectsRequest deleteObjectsRequest = new DeleteObjectsRequest(objectTemplateBucket);
         deleteObjectsRequest.setKeys(keys.stream().map(DeleteObjectsRequest.KeyVersion::new).collect(Collectors.toList()));
         try
@@ -336,7 +343,7 @@ public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjec
         }
         catch (CosClientException e)
         {
-            logger.error("error during cos client batch delete object : ".concat(e.getMessage()));
+            LOGGER.error("an error occurred while cos batch delete object : {}" , e.getMessage());
         }
         finally
         {
@@ -352,11 +359,11 @@ public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjec
     @Override
     public void deleteObjectWithUrl(String url)
     {
-        CommonUtil.assertObjectNull("url",url);
+        CommonUtil.assertObjectNull(url,"url cannot be null.");
         String domainPrefix = COSUtil.getTenCloudObjectUrlPrefix(objectTemplateBucket,region);
         if(!url.startsWith(domainPrefix))
         {
-            throw new IllegalArgumentException("url must be tencent cloud url and region and bucket must be reasonable");
+            throw new IllegalArgumentException("url must be tencent cloud url and region and bucket must be reasonable.");
         }
         else
         {
@@ -372,8 +379,7 @@ public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjec
     @Override
     public void deleteObjectsWithUrls(List<String> urls)
     {
-        CommonUtil.assertListEmpty("urls",urls);
-        String domainPrefix = COSUtil.getTenCloudObjectUrlPrefix(objectTemplateBucket,region);
+        CommonUtil.assertCollectionEmpty(urls,"urls cannot be empty.");
         deleteObjectsWithKeys(urls.stream().filter(url->url.startsWith(domainPrefix)).map(url->url.replace(domainPrefix,"")).collect(Collectors.toList()));
     }
 
@@ -389,7 +395,7 @@ public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjec
     @Override
     public String copyObject(String sourceKey, String targetRegion, String targetBucketName, String targetKey)
     {
-        throw new UnsupportedOperationException("can not copy file with base template");
+        throw new UnsupportedOperationException("can not copy file with base template.");
     }
 
     /**
@@ -401,14 +407,25 @@ public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjec
         cosClient.shutdown();
     }
 
+
+    /**
+     * 关闭高级接口
+     */
+    @Override
+    public void closeTransferManager()
+    {
+        transferManager.shutdownNow();
+    }
+
     /**
      * 设置操作模板的存储桶,无需填写APP ID
      * @param objectTemplateBucket    操作的存储桶
      */
     public void setObjectTemplateBucket(String objectTemplateBucket)
     {
-        CommonUtil.assertObjectNull("object template bucket",objectTemplateBucket);
+        CommonUtil.assertObjectNull(objectTemplateBucket,"object template bucket cannot be null.");
         this.objectTemplateBucket = getStandardBucketName(objectTemplateBucket);
+        this.domainPrefix = COSUtil.getTenCloudObjectUrlPrefix(objectTemplateBucket,region);
     }
 
     /**
@@ -422,33 +439,6 @@ public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjec
         return objectTemplateBucket;
     }
 
-    /**
-     * <p>获取上传对象的大小限制</p>
-     * @return  上传对象的大小限制
-     */
-    public int getUploadLimitSize()
-    {
-        return cosClientProperties.getUploadLimitSize();
-    }
-
-    /**
-     * <p>获取当前模板的region</p>
-     * @return  地域
-     */
-    public String getRegion()
-    {
-        return region;
-    }
-
-
-    /**
-     * <p>设置当前模板的地域</p>
-     * @param region
-     */
-    public void setRegion(String region)
-    {
-        this.region = region;
-    }
 
     /**
      * <p>
@@ -467,7 +457,7 @@ public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjec
         else
         {
             copyTransferManagerMap.put
-                    (targetRegion, (transferManager = new TransferManager(new COSClient(cosClientProperties.getCosCredentials(),new ClientConfig(new Region(targetRegion))))));
+                    (targetRegion, (transferManager = new TransferManager(new COSClient(cosCredentials,new ClientConfig(new Region(targetRegion))))));
             return transferManager;
         }
     }
@@ -488,11 +478,13 @@ public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjec
                 targetKey);
     }
 
+
     //返回原cos client
     protected final COSClient newCopySourceCOSClient()
     {
         return cosClient;
     }
+
 
     /**
      * 获取腾讯云标准的存储桶名
@@ -501,7 +493,7 @@ public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjec
      */
     protected final String getStandardBucketName(String bucketName)
     {
-        return COSUtil.getTencloudStandardBucketName(bucketName,cosClientProperties.getAppId());
+        return COSUtil.getTencloudStandardBucketName(bucketName,appId);
     }
 
     /**
@@ -512,5 +504,14 @@ public abstract class BaseTenCloudCOSObjectTemplate  implements TenCloudCOSObjec
     protected final String getObjectUrl(String objectKey)
     {
         return COSUtil.getTencloudObjectUrl(objectTemplateBucket,region,objectKey);
+    }
+
+    /**
+     * <p>获取上传大小限制</p>
+     * @return 上传大小限制
+     */
+    public int getUploadLimitSize()
+    {
+        return uploadLimitSize;
     }
 }

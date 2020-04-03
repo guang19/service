@@ -22,4 +22,9 @@ public interface TenCloudCOSObjectTemplate extends COSObjectTemplate
      * @return                      复制后的对象的url
      */
     public String copyObject(String sourceKey,String targetRegion,String targetBucketName,String targetKey);
+
+    /**
+     * 关闭高级接口
+     */
+    public void closeTransferManager();
 }

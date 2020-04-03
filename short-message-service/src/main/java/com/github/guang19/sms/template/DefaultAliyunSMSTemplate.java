@@ -70,19 +70,17 @@ public class DefaultAliyunSMSTemplate extends BaseAliyunSMSTemplate
      */
     private ResponseDTO requestSingleMessage(ParamDTO param,String ...phoneNumbers)
     {
-        CommonUtil.assertObjectNull("param",param);
-        CommonUtil.assertArrayEmpty("phoneNumbers",phoneNumbers);
+        CommonUtil.assertObjectNull(param,"param cannot be null.");
+        CommonUtil.assertArrayEmpty(phoneNumbers,"phone numbers cannot be empty.");
         if(phoneNumbers.length > 1000)
         {
-            throw new IllegalArgumentException("send message to up to 1000 phoneNumbers at the same time");
+            throw new IllegalArgumentException("send message to up to 1000 phoneNumbers at the same time.");
         }
-        CommonRequest request = getSMSRequest(NORMAL);
-        synchronized (this)
-        {
-            request.putQueryParameter("TemplateParam",SMSUtil.toJson(param.getMap()));
-            request.putQueryParameter("PhoneNumbers",phoneNumbers.length == 1 ? phoneNumbers[0] : Arrays.toString(phoneNumbers).replaceAll("[\\[\\]]",""));
-            return smsRequest(request);
-        }
+        CommonRequest request = newAliyunSMSRequest(NORMAL);
+        request.putQueryParameter("TemplateParam",SMSUtil.toJson(param.getMap()));
+        request.putQueryParameter("PhoneNumbers",phoneNumbers.length == 1 ? phoneNumbers[0] : Arrays.toString(phoneNumbers).replaceAll("[\\[\\]]",""));
+        return smsRequest(request);
+
     }
 
     /**
@@ -98,7 +96,7 @@ public class DefaultAliyunSMSTemplate extends BaseAliyunSMSTemplate
      * @return 如果发送成功, 则返回发送成功的响应体 : {@link ResponseDTO}
      */
     @Override
-    public ResponseDTO sendBatchMessage(String[] phoneNumbers, ParamDTO[] params)
+    public ResponseDTO batchSendMessage(String[] phoneNumbers, ParamDTO[] params)
     {
         return requestBatchMessage(phoneNumbers, params);
     }
@@ -111,18 +109,15 @@ public class DefaultAliyunSMSTemplate extends BaseAliyunSMSTemplate
      */
     private ResponseDTO requestBatchMessage(String[] phoneNumbers,ParamDTO[] params)
     {
-        CommonUtil.assertArrayEmpty("phoneNumbers",phoneNumbers);
-        CommonUtil.assertArrayEmpty("params",params);
+        CommonUtil.assertArrayEmpty(phoneNumbers,"phone numbers cannot be empty.");
+        CommonUtil.assertArrayEmpty(params,"params cannot be empty.");
         if(phoneNumbers.length > 100)
         {
-            throw new IllegalArgumentException("send message to up to 100 phoneNumbers at the same time");
+            throw new IllegalArgumentException("send message to up to 100 phoneNumbers at the same time.");
         }
-        CommonRequest request = getSMSRequest(BATCH);
-        synchronized (this)
-        {
-            request.putQueryParameter("PhoneNumberJson",SMSUtil.toJson(phoneNumbers));
-            request.putQueryParameter("TemplateParamJson",SMSUtil.toJson(Arrays.stream(params).map(ParamDTO::getMap).collect(Collectors.toList())));
-            return smsRequest(request);
-        }
+        CommonRequest request = newAliyunSMSRequest(BATCH);
+        request.putQueryParameter("PhoneNumberJson",SMSUtil.toJson(phoneNumbers));
+        request.putQueryParameter("TemplateParamJson",SMSUtil.toJson(Arrays.stream(params).map(ParamDTO::getMap).collect(Collectors.toList())));
+        return smsRequest(request);
     }
 }

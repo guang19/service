@@ -19,7 +19,7 @@ public class SMSProfileProperties
     private final String[] signNames;
 
     //短信模板
-    private String messageTemplate;
+    private String template;
 
     //默认查询数据的page size
     private final long DEFAULT_QUERY_PAGE_SIZE = 50L;

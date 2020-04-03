@@ -11,7 +11,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @Getter
 @Setter
-@ConfigurationProperties(prefix = "spring.sm.service",ignoreInvalidFields = true)
+@ConfigurationProperties(prefix = "spring.sms",ignoreInvalidFields = true)
 public class SMSProperties
 {
     //secret id
@@ -27,7 +27,7 @@ public class SMSProperties
     private String signNames;
 
     //短信模板
-    private String messageTemplate;
+    private String template;
 
     //查询数据时的page size
     private Long queryPageSize;

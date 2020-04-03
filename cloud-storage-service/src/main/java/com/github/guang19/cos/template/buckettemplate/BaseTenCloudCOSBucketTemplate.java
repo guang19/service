@@ -7,6 +7,8 @@ import com.qcloud.cos.COSClient;
 import com.qcloud.cos.exception.CosClientException;
 import com.qcloud.cos.model.AccessControlList;
 import com.qcloud.cos.model.Bucket;
+import com.qcloud.cos.model.CannedAccessControlList;
+import com.qcloud.cos.model.CreateBucketRequest;
 import com.qcloud.cos.region.Region;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +31,8 @@ public abstract class BaseTenCloudCOSBucketTemplate implements TenCloudCOSBucket
     //腾讯云 APP Id
     private final String appId;
 
-    //logger
-    protected static final Logger logger = LoggerFactory.getLogger(BaseTenCloudCOSBucketTemplate.class);
+    //LOGGER
+    protected static final Logger LOGGER = LoggerFactory.getLogger(BaseTenCloudCOSBucketTemplate.class);
 
     /**
      * <p>构造腾讯云COS存储桶操作基础模板</p>
@@ -50,9 +52,14 @@ public abstract class BaseTenCloudCOSBucketTemplate implements TenCloudCOSBucket
     @Override
     public List<String> getAllBuckets()
     {
-        List<String> buckets = cosClient.listBuckets().stream().map(Bucket::toString).collect(Collectors.toList());
-        close();
-        return buckets;
+        try
+        {
+           return cosClient.listBuckets().stream().map(Bucket::toString).collect(Collectors.toList());
+        }
+        finally
+        {
+            close();
+        }
     }
 
     /**
@@ -63,21 +70,20 @@ public abstract class BaseTenCloudCOSBucketTemplate implements TenCloudCOSBucket
     @Override
     public String getBucketLocation(String bucketName)
     {
-        CommonUtil.assertObjectNull("bucketName",bucketName);
-        String bucketLocation = null;
+        CommonUtil.assertObjectNull(bucketName,"bucket name can not be null.");
         try
         {
-            bucketLocation = cosClient.getBucketLocation(getStandardBucketName(bucketName));
+            return cosClient.getBucketLocation(getStandardBucketName(bucketName));
         }
         catch (CosClientException e)
         {
-            logger.error("error during get bucket location : ".concat(e.getMessage()));
+            LOGGER.error("an error occurred while cos get bucket location : {}",e.getMessage());
         }
         finally
         {
             close();
         }
-        return bucketLocation;
+        return null;
     }
 
     /**
@@ -94,38 +100,38 @@ public abstract class BaseTenCloudCOSBucketTemplate implements TenCloudCOSBucket
     @Override
     public Map<String, Object> getBucketAccessControllerList(String bucketName)
     {
-        CommonUtil.assertObjectNull("bucketName",bucketName);
-        Map<String,Object> map = null;
+        CommonUtil.assertObjectNull(bucketName,"bucket name can not be null.");
+        AccessControlList accessControlList = null;
         try
         {
-            AccessControlList accessControlList = cosClient.getBucketAcl(getStandardBucketName(bucketName));
-            map = new HashMap<>();
-            getBucketAccessControllerList(map,accessControlList);
+            accessControlList = cosClient.getBucketAcl(getStandardBucketName(bucketName));
         }
         catch (CosClientException e)
         {
-            logger.error("error during get bucket access controller list : ".concat(e.getMessage()));
+            LOGGER.error("an error occurred while cos get bucket access controller list : {}" ,e.getMessage());
         }
         finally
         {
             close();
         }
-        return map;
+        return putBucketAccessControllerListMap(accessControlList);
     }
 
     //获取存储桶权限
-    private void getBucketAccessControllerList(Map<String,Object> map,AccessControlList accessControlList)
+    private Map<String,Object> putBucketAccessControllerListMap(AccessControlList accessControlList)
     {
+        Map<String,Object> bucketAccessControllerListMap = new HashMap<>();
         if(accessControlList != null)
         {
-            map.put("owner",accessControlList.getOwner());
-            map.put("grants",accessControlList.getGrantsAsList());
+            bucketAccessControllerListMap.put("owner",accessControlList.getOwner());
+            bucketAccessControllerListMap.put("grants",accessControlList.getGrantsAsList());
         }
         else
         {
-            map.put("owner",null);
-            map.put("grants",null);
+            bucketAccessControllerListMap.put("owner",null);
+            bucketAccessControllerListMap.put("grants",null);
         }
+        return bucketAccessControllerListMap;
     }
 
     /**
@@ -137,14 +143,19 @@ public abstract class BaseTenCloudCOSBucketTemplate implements TenCloudCOSBucket
     @Override
     public boolean existBucket(String bucketName)
     {
-        CommonUtil.assertObjectNull("bucketName",bucketName);
-        boolean exist = cosClient.doesBucketExist(getStandardBucketName(bucketName));
-        close();
-        return exist;
+        CommonUtil.assertObjectNull(bucketName,"bucket name can not be null.");
+        try
+        {
+            return cosClient.doesBucketExist(getStandardBucketName(bucketName));
+        }
+        finally
+        {
+            close();
+        }
     }
 
     /**
-     * <p>创建存储桶</p>
+     * <p>创建存储桶,默认为私有读写</p>
      *
      * @param bucketName 存储桶名
      * @return 创建好的存储桶bucket
@@ -152,7 +163,7 @@ public abstract class BaseTenCloudCOSBucketTemplate implements TenCloudCOSBucket
     @Override
     public Bucket createBucket(String bucketName)
     {
-        throw new UnsupportedOperationException("can not create bucket with base template");
+        throw new UnsupportedOperationException("can not create bucket with base template.");
     }
 
     /**
@@ -164,7 +175,7 @@ public abstract class BaseTenCloudCOSBucketTemplate implements TenCloudCOSBucket
     @Override
     public Bucket createBucketPublicReadAndWrite(String bucketName)
     {
-        throw new UnsupportedOperationException("can not create bucket with base template");
+        throw new UnsupportedOperationException("can not create bucket with base template.");
     }
 
     /**
@@ -176,7 +187,7 @@ public abstract class BaseTenCloudCOSBucketTemplate implements TenCloudCOSBucket
     @Override
     public Bucket createBucketPublicRead(String bucketName)
     {
-        throw new UnsupportedOperationException("can not create bucket with base template");
+        throw new UnsupportedOperationException("can not create bucket with base template.");
     }
 
     /**
@@ -187,14 +198,15 @@ public abstract class BaseTenCloudCOSBucketTemplate implements TenCloudCOSBucket
     @Override
     public void deleteBucket(String bucketName)
     {
-        CommonUtil.assertObjectNull("bucketName",bucketName);
+        CommonUtil.assertObjectNull(bucketName,"bucket name can not be null.");
         try
         {
             cosClient.deleteBucket(getStandardBucketName(bucketName));
+            LOGGER.info("bucket: {} has been deleted",bucketName);
         }
         catch (CosClientException e)
         {
-            logger.error("error during delete bucket : ".concat(e.getMessage()));
+            LOGGER.error("an error occurred while cos delete bucket : {}", e.getMessage());
         }
         finally
         {
@@ -209,6 +221,33 @@ public abstract class BaseTenCloudCOSBucketTemplate implements TenCloudCOSBucket
     public void close()
     {
         cosClient.shutdown();
+    }
+
+
+    /**
+     * <p>创建存储桶模板</p>
+     * @param bucketName            存储桶名
+     * @param accessControlList     访问权限
+     * @return                      创建好的存储桶
+     */
+    protected final Bucket createBucket(String bucketName, CannedAccessControlList accessControlList)
+    {
+        CommonUtil.assertObjectNull(bucketName,"bucket name can not be null.");
+        CreateBucketRequest createBucketRequest = new CreateBucketRequest(getStandardBucketName(bucketName));
+        createBucketRequest.setCannedAcl(accessControlList);
+        try
+        {
+            return cosClient.createBucket(createBucketRequest);
+        }
+        catch (CosClientException e)
+        {
+            LOGGER.error("an error occurred while cos create bucket : {}", e.getMessage());
+        }
+        finally
+        {
+            close();
+        }
+        return null;
     }
 
     //根据存储桶获取标准存储桶名

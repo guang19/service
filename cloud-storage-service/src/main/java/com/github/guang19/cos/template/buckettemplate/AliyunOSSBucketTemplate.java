@@ -16,7 +16,7 @@ import com.aliyun.oss.model.Bucket;
 public interface AliyunOSSBucketTemplate extends COSBucketTemplate
 {
     /**
-     * <p>创建私有读写的存储桶,默认为标准存储桶,本地冗余</p>
+     * <p>创建私有读写的存储桶:标准存储,本地冗余</p>
      * @param bucketName    存储桶名(3 - 63个字符)
      * @return              存储桶
      */
