@@ -1,3 +1,3 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.github.guang19.cos.spring.autoconfig.TenCloudCOSAutoConfiguration,\
-com.github.guang19.cos.spring.autoconfig.AliyunOSSAutoConfiguration
+com.github.guang19.service.cos.spring.autoconfig.TenCloudCOSAutoConfiguration,\
+com.github.guang19.service.cos.spring.autoconfig.AliyunOSSAutoConfiguration
